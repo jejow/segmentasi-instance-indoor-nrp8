@@ -17,3 +17,9 @@ Sumber dataset: https://universe.roboflow.com/panopticindoor/panoptic-indoor-seg
 - Endpoint Roboflow mengonfirmasi versi 5 dan pembagian resmi. ZIP COCO Segmentation memuat 922 gambar dengan 4.479 mask train, 2.022 mask validasi, dan 5.344 mask test sebelum normalisasi.
 - Pemeriksaan awal menghentikan persiapan karena empat file berukuran 480×640, sementara koordinat COCO merujuk ke 640×480. Saya membandingkan overlay asli, rotasi searah jarum jam, dan rotasi berlawanan. Tiga gambar cocok dengan rotasi searah jarum jam dan satu gambar cocok dengan rotasi berlawanan. Bukti ada di [gambar overlay](bukti/arah-empat-citra-v5.jpg). Solusi awal AI yang hanya mengandalkan EXIF gagal karena keempatnya tidak memiliki tag orientasi. Persiapan kini memperbaiki empat nama file yang telah diverifikasi.
 - Evaluasi bersama memakai mask COCO yang diproyeksikan ke kanvas 640×640 dengan rasio aspek asli dipertahankan. Luas dan bbox dihitung ulang dari raster mask. JSON asli tetap tersimpan. Label kelas resmi tidak digabungkan.
+
+## 2026-11-24 02:56:01 +07:00 · Peluncuran paralel
+
+- Paket publik berisi 11.845 mask dan 74 kelas aktif di seluruh split. Ada 65 kelas dengan contoh positif di train. Hash SHA-256 paket 640 px adalah 3bc2e86693d941dc5119e748137053c8b6bc9ce1bf408323ddd1129fb50a5ec4. Pemeriksaan byte gambar tidak menemukan duplikat persis lintas split.
+- Monitor beberapa profil gagal mengimpor paket dari environment UV sementara. Saya memasang versi CLI yang sama di virtual environment lokal yang persisten dan melanjutkan dengan ID permintaan runtime yang sudah tercatat. Run 04 dan 05 telah melaporkan batch nyata.
+- Diperiksa 41 foto asli dari folder Mobile Devices. Seluruhnya memiliki EXIF dan waktu pengambilan asli. Bukti metadata disimpan secara lokal dan dikecualikan dari Git.
