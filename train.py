@@ -227,13 +227,14 @@ def train_maskrcnn(args, root, classes, manifest, work):
     deadline = monotonic() + 60 * args.minutes
     completed = 0
     with csv_path.open("w", newline="", encoding="utf-8") as stream:
-        columns = ["epoch", "batches", "train_loss", "lr", "epoch_seconds"]
+        columns = ["epoch", "batches", "train_loss", "lr", "epoch_seconds", "fp32_retry_batches"]
         writer = csv.DictWriter(stream, fieldnames=columns)
         writer.writeheader()
         for epoch in range(1, args.epochs+1):
             model.train()
             start = monotonic()
             losses = []
+            fp32_retries = 0
             for step, (images, targets) in enumerate(loader, start=1):
                 if step == 1 or step % 25 == 0:
                     report(phase="training", epoch=epoch, batch=step, batches=len(loader))
@@ -243,8 +244,15 @@ def train_maskrcnn(args, root, classes, manifest, work):
                 with amp_context(device):
                     outputs = model(images, targets)
                     loss = sum(outputs.values())
+                if not torch.isfinite(loss) and device.type == "cuda":
+                    del loss, outputs
+                    outputs = model(images, targets)
+                    loss = sum(outputs.values())
+                    fp32_retries += 1
+                    print(f"Retried Mask R-CNN forward in FP32: epoch {epoch}, step {step}", flush=True)
                 if not torch.isfinite(loss):
-                    raise FloatingPointError(f"Non-finite Mask R-CNN training loss, epoch {epoch}, step {step}")
+                    invalid = [name for name, value in outputs.items() if not torch.isfinite(value)]
+                    raise FloatingPointError(f"Non-finite losses {invalid}, epoch {epoch}, step {step}")
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
@@ -253,7 +261,8 @@ def train_maskrcnn(args, root, classes, manifest, work):
                     break
             loss_value = torch.stack(losses).mean().item()
             row = {"epoch": epoch, "batches": step, "train_loss": loss_value,
-                   "lr": optimizer.param_groups[0]["lr"], "epoch_seconds": round(monotonic()-start, 3)}
+                   "lr": optimizer.param_groups[0]["lr"], "epoch_seconds": round(monotonic()-start, 3),
+                   "fp32_retry_batches": fp32_retries}
             writer.writerow(row)
             stream.flush()
             print(row, flush=True)
