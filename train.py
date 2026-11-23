@@ -218,6 +218,23 @@ def train_maskrcnn(args, root, classes, manifest, work):
         generator=torch.Generator().manual_seed(args.seed),
     )
     model = build_maskrcnn(size, len(classes), pretrained=True).to(device)
+    roi_count = 0
+
+    def track_roi_count(_module, _inputs, outputs):
+        nonlocal roi_count
+        roi_count = outputs[0].shape[0]
+
+    model.roi_heads.box_predictor.register_forward_hook(track_roi_count)
+
+    def forward_losses(images, targets):
+        losses = model(images, targets)
+        if roi_count == 0:
+            # TorchVision's box regression normalizes by the count of sampled RoIs.
+            # An empty proposal set can still provide valid RPN supervision.
+            losses.pop("loss_classifier")
+            losses.pop("loss_box_reg")
+        return losses
+
     optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad),
                                   lr=3e-4, weight_decay=.0005)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs, eta_min=3e-5)
@@ -227,7 +244,7 @@ def train_maskrcnn(args, root, classes, manifest, work):
     deadline = monotonic() + 60 * args.minutes
     completed = 0
     with csv_path.open("w", newline="", encoding="utf-8") as stream:
-        columns = ["epoch", "batches", "train_loss", "lr", "epoch_seconds", "fp32_retry_batches"]
+        columns = ["epoch", "batches", "train_loss", "lr", "epoch_seconds", "fp32_retry_batches", "empty_roi_batches"]
         writer = csv.DictWriter(stream, fieldnames=columns)
         writer.writeheader()
         for epoch in range(1, args.epochs+1):
@@ -235,6 +252,7 @@ def train_maskrcnn(args, root, classes, manifest, work):
             start = monotonic()
             losses = []
             fp32_retries = 0
+            empty_roi_batches = 0
             for step, (images, targets) in enumerate(loader, start=1):
                 if step == 1 or step % 25 == 0:
                     report(phase="training", epoch=epoch, batch=step, batches=len(loader))
@@ -242,17 +260,18 @@ def train_maskrcnn(args, root, classes, manifest, work):
                 targets = [{k: v.to(device, non_blocking=True) for k, v in t.items()} for t in targets]
                 optimizer.zero_grad(set_to_none=True)
                 with amp_context(device):
-                    outputs = model(images, targets)
+                    outputs = forward_losses(images, targets)
                     loss = sum(outputs.values())
                 if not torch.isfinite(loss) and device.type == "cuda":
                     del loss, outputs
-                    outputs = model(images, targets)
+                    outputs = forward_losses(images, targets)
                     loss = sum(outputs.values())
                     fp32_retries += 1
                     print(f"Retried Mask R-CNN forward in FP32: epoch {epoch}, step {step}", flush=True)
                 if not torch.isfinite(loss):
                     invalid = [name for name, value in outputs.items() if not torch.isfinite(value)]
-                    raise FloatingPointError(f"Non-finite losses {invalid}, epoch {epoch}, step {step}")
+                    raise FloatingPointError(f"Non-finite losses {invalid}, epoch {epoch}, step {step}, {roi_count} sampled RoIs")
+                empty_roi_batches += int(roi_count == 0)
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
@@ -262,7 +281,7 @@ def train_maskrcnn(args, root, classes, manifest, work):
             loss_value = torch.stack(losses).mean().item()
             row = {"epoch": epoch, "batches": step, "train_loss": loss_value,
                    "lr": optimizer.param_groups[0]["lr"], "epoch_seconds": round(monotonic()-start, 3),
-                   "fp32_retry_batches": fp32_retries}
+                   "fp32_retry_batches": fp32_retries, "empty_roi_batches": empty_roi_batches}
             writer.writerow(row)
             stream.flush()
             print(row, flush=True)
