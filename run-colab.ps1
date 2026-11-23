@@ -4,12 +4,17 @@ param(
     [string]$Phase,
     [ValidatePattern('^0[1-9]$')]
     [string]$OnlyProfile,
+    [ValidatePattern('^0[1-9]$')]
+    [string]$ProfileOverride,
     [ValidatePattern('^-[a-z0-9-]+$')]
     [string]$RunSuffix,
     [switch]$Check
 )
 
 $ErrorActionPreference = 'Stop'
+if ($ProfileOverride -and !$OnlyProfile) {
+    throw 'Gunakan -OnlyProfile untuk memilih satu run jika mengganti profil eksekusi.'
+}
 $launcher = 'C:\Users\junxi\.agents\skills\colab\scripts\colab.ps1'
 $stablePython = Join-Path $env:LOCALAPPDATA 'FP-K2-Training\segmentasi-nrp8-venv\Scripts\python.exe'
 $backend = 'C:\Users\junxi\OneDrive\Documents\Semester 5\Kompt Biomeds\FP\fp_rsna\eksperimen_model\03_colab\colab_project.py'
@@ -31,6 +36,7 @@ for ($index = 0; $index -lt $models.Count; $index++) {
     $model = $models[$index]
     $profileId = '{0:00}' -f ($firstProfile + $index)
     if ($OnlyProfile -and $OnlyProfile -ne $profileId) { continue }
+    $executionProfile = if ($ProfileOverride) { $ProfileOverride } else { $profileId }
 
     $epochLimit = if ($Phase -eq 'Pilot') { 3 } else { 16 }
     $runtimeLimit = if ($Phase -eq 'Pilot') { 10 } else { 45 }
@@ -39,7 +45,7 @@ for ($index = 0; $index -lt $models.Count; $index++) {
         'start', 'train.py', '--root', $PSScriptRoot,
         '--project', 'segmentasi-indoor-nrp8', '--run', $runId,
         '--title', 'Segmentasi instance indoor (NRP 8)', '--dataset', 'Roboflow Panoptic Indoor Segmentation v5',
-        '--profile', $profileId, '--model', $model.Title, '--method', $methodLabel,
+        '--profile', $executionProfile, '--model', $model.Title, '--method', $methodLabel,
         '--accelerator', 'T4', '--metric', 'Mask AP50-95 validasi', '--unit', '%', '--mode', 'max',
         '--epochs', $epochLimit, '--requirements', $model.Requirements,
         '--include', 'metrics.py', '--include', $dataset, '--output', 'output/result.zip',
