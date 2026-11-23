@@ -30,3 +30,11 @@ Sumber dataset: https://universe.roboflow.com/panopticindoor/panoptic-indoor-seg
 - Pada test resmi v5 terdapat 19 mask knife pada 8 gambar, 295 mask light pada 98 gambar, dan 36 mask spoon pada 17 gambar. Jumlah ini diperiksa setelah daftar kelas dikunci.
 - Run penuh YOLOv8n dan YOLO11n mencapai 16 epoch, tetapi evaluasi pertama gagal mengemas prediksi. COCO.loadRes mengubah objek prediksi dengan menambahkan area bertipe NumPy uint32 dan bbox array. Evaluator kini memberi COCO salinan objek. Uji prediksi identik menghasilkan AP 1 dan prediksi tetap dapat diserialisasi setelah evaluasi. Riwayat asli kedua percobaan disimpan.
 - YOLOv8n mengulang pada profil 04. Pengulangan YOLO11n pada profil 05 ditolak oleh Colab sehingga pengulangan dialihkan ke profil 02 setelah pilot profil itu selesai. Mask R-CNN penuh di profil 06 memiliki salinan checkpoint akhir yang diminta dari runtime lama agar 16 epoch tidak perlu diulang.
+
+## 2026-11-24 03:32:31 +07:00 · Enam run utama selesai
+
+- Verifikasi akhir menerima enam checkpoint 16 epoch dan tiga arsip pilot dari Pantau Colab. Manifest hasil menyimpan ukuran, profil, dan SHA-256 setiap arsip. Log dan CSV asli tersedia bersama checkpoint di output/runs.
+- Pada test resmi, AP mask semua kelas adalah 2,26% untuk YOLOv8n-seg, 1,71% untuk YOLO11n-seg, dan 4,51% untuk Mask R-CNN R50-FPN.
+- Untuk knife, light, dan spoon, AP kondisi penuh vs tiga kelas adalah 0,30% dan 0,00% pada YOLOv8n, 0,17% dan 0,00% pada YOLO11n, serta 1,15% dan 0,56% pada Mask R-CNN. Hanya 43 dari 397 gambar train memiliki satu atau lebih kelas target. Pada dua YOLO kondisi tiga kelas, prediksi mask tidak mencapai ambang 0,005.
+- Checkpoint Mask R-CNN profil 06 dipulihkan secara utuh dan dievaluasi lewat profil 03. Run tiga kelas profil 09 menyelesaikan semua epoch dengan satu batch tanpa RoI yang memakai supervisi RPN dan satu forward yang diulang dengan FP32. Log kegagalan awal dipertahankan sebagai bukti proses.
+- Sumber uji pribadi yang tersedia lokal masih berupa ekspor awal dengan mask pada tiga gambar. AP foto pribadi dan analisis domain shift menunggu ekspor hasil audit.
