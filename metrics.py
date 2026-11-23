@@ -25,7 +25,8 @@ def score_masks(ground_truth, predictions, category_ids):
     with redirect_stdout(StringIO()):
         truth.createIndex()
         if predictions:
-            detected = truth.loadRes(predictions)
+            # COCO.loadRes enriches its input with NumPy area and bbox fields.
+            detected = truth.loadRes([prediction.copy() for prediction in predictions])
         else:
             detected = COCO()
             detected.dataset = {"images": ground_truth["images"], "annotations": [],
