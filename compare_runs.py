@@ -84,6 +84,7 @@ def compare(run_paths, selection_path, output):
     if not paired:
         return
     import matplotlib.pyplot as plt
+    from matplotlib.ticker import MaxNLocator
     import numpy as np
 
     fig, ax = plt.subplots(figsize=(9.2, 4.9), layout="constrained")
@@ -95,8 +96,10 @@ def compare(run_paths, selection_path, output):
         ax.bar_label(bars, fmt="%.2f", padding=4, fontsize=9)
     ax.set_title("Efek jumlah kelas pada test set asli Roboflow v5", loc="left", weight="bold")
     ax.set_ylabel("Mask AP50–95 pada kelas target (%)")
+    ax.set_xlabel(", ".join(classes) + " · 359 gambar test", labelpad=10)
     ax.set_xticks(positions, [row[0] for row in paired])
-    ax.set_ylim(0, min(110, max(10, peak * 1.3)))
+    ax.set_ylim(0, min(110, max(.1, peak * 1.44)))
+    ax.yaxis.set_major_locator(MaxNLocator(5))
     ax.legend(title="Kondisi training", frameon=False)
     ax.grid(axis="y", alpha=.22)
     ax.set_axisbelow(True)
