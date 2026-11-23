@@ -11,3 +11,9 @@
 - Catat tanggal mulai aktual, GPU, waktu, data yang dipakai, kurva training, dan masalah runtime dari log asli.
 
 Sumber dataset: https://universe.roboflow.com/panopticindoor/panoptic-indoor-segmentation/dataset/5
+
+## 2026-11-24 02:45:01 +07:00 · Validasi ekspor sebelum training
+
+- Endpoint Roboflow mengonfirmasi versi 5 dan pembagian resmi. ZIP COCO Segmentation memuat 922 gambar dengan 4.479 mask train, 2.022 mask validasi, dan 5.344 mask test sebelum normalisasi.
+- Pemeriksaan awal menghentikan persiapan karena empat file berukuran 480×640, sementara koordinat COCO merujuk ke 640×480. Saya membandingkan overlay asli, rotasi searah jarum jam, dan rotasi berlawanan. Tiga gambar cocok dengan rotasi searah jarum jam dan satu gambar cocok dengan rotasi berlawanan. Bukti ada di [gambar overlay](bukti/arah-empat-citra-v5.jpg). Solusi awal AI yang hanya mengandalkan EXIF gagal karena keempatnya tidak memiliki tag orientasi. Persiapan kini memperbaiki empat nama file yang telah diverifikasi.
+- Evaluasi bersama memakai mask COCO yang diproyeksikan ke kanvas 640×640 dengan rasio aspek asli dipertahankan. Luas dan bbox dihitung ulang dari raster mask. JSON asli tetap tersimpan. Label kelas resmi tidak digabungkan.
