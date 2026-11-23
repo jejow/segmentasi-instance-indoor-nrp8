@@ -11,6 +11,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $launcher = 'C:\Users\junxi\.agents\skills\colab\scripts\colab.ps1'
+$stablePython = Join-Path $env:LOCALAPPDATA 'FP-K2-Training\segmentasi-nrp8-venv\Scripts\python.exe'
+$backend = 'C:\Users\junxi\OneDrive\Documents\Semester 5\Kompt Biomeds\FP\fp_rsna\eksperimen_model\03_colab\colab_project.py'
 $dataset = 'data/panoptic-indoor-v5-640.zip'
 $selectedClasses = 'hard-classes.json'
 $models = @(
@@ -53,6 +55,12 @@ for ($index = 0; $index -lt $models.Count; $index++) {
     }
     if ($Check) { $arguments += '--check' }
 
-    & $launcher @arguments
+    if ((Test-Path -LiteralPath $stablePython) -and (Test-Path -LiteralPath $backend)) {
+        $env:COLAB_CLI_REQUEST_TIMEOUT = '60'
+        $env:COLAB_CLI_ASSIGN_RETRIES = '2'
+        & $stablePython $backend @arguments
+    } else {
+        & $launcher @arguments
+    }
     if ($LASTEXITCODE -ne 0) { throw "Peluncur gagal mendaftarkan profil $profileId, run $runId." }
 }
