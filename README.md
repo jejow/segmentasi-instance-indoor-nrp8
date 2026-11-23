@@ -13,8 +13,8 @@ Dataset publik [Panoptic Indoor Segmentation v5](https://universe.roboflow.com/p
    uv run --no-project --python 3.12 --with pycocotools==2.0.10 --with opencv-python-headless==4.11.0.86 --with pillow python prepare_dataset.py data/panoptic-indoor-v5-original.coco.zip data/panoptic-indoor-v5-640.zip
    ```
 
-3. Periksa paket dengan `.un-colab.ps1 -Phase Pilot -Check` dan `.un-colab.ps1 -Phase Full -Check`. Perintah tanpa `-Check` memakai profil 01–03 untuk pilot dan 04–06 untuk semua kelas. Gunakan ID berbeda melalui `-RunSuffix` untuk eksperimen ulang.
-4. Setelah tiga pilot selesai, berikan tiga artefak `result.zip` kepada `select_hard.py` sesuai posisi argumen. Gunakan manifest hasil analisis untuk `.un-colab.ps1 -Phase Three -Check` dan jalankan fase Three pada profil 07–09.
+3. Periksa paket dengan `./run-colab.ps1 -Phase Pilot -Check` dan `./run-colab.ps1 -Phase Full -Check`. Perintah tanpa `-Check` memakai profil 01–03 untuk pilot dan 04–06 untuk semua kelas. Gunakan ID berbeda melalui `-RunSuffix` untuk eksperimen ulang.
+4. Setelah tiga pilot selesai, berikan tiga artefak `result.zip` kepada `select_hard.py` sesuai posisi argumen. Gunakan manifest hasil analisis untuk `./run-colab.ps1 -Phase Three -Check` dan jalankan fase Three pada profil 07–09.
 5. Berikan artefak run utama kepada `compare_runs.py` untuk menghasilkan CSV dan grafik NRP 8. Seluruh tabel AP memakai metrik mask yang sama. Progres dan unduhan hasil ada di [Pantau Colab](http://127.0.0.1:8766/03_colab/?proyek=segmentasi-indoor-nrp8#progres).
 
 ## Evaluasi foto sendiri
