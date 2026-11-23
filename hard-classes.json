@@ -1,0 +1,48 @@
+{
+  "classes": [
+    "knife",
+    "light",
+    "spoon"
+  ],
+  "dataset_sha256": "3bc2e86693d941dc5119e748137053c8b6bc9ce1bf408323ddd1129fb50a5ec4",
+  "source_split": "valid",
+  "pilot_models": [
+    "yolov8n",
+    "yolo11n",
+    "maskrcnn"
+  ],
+  "method": "lowest mean pilot mask AP50-95; support >=5 train and >=3 validation images",
+  "tie_break": "smaller median relative mask area in validation, then fewer training images",
+  "top_three": [
+    {
+      "name": "knife",
+      "mean_valid_ap": 0.0,
+      "train_images": 7,
+      "valid_images": 3,
+      "valid_median_mask_fraction": 0.00125,
+      "yolov8n": 0.0,
+      "yolo11n": 0.0,
+      "maskrcnn": 0.0
+    },
+    {
+      "name": "light",
+      "mean_valid_ap": 0.0,
+      "train_images": 19,
+      "valid_images": 9,
+      "valid_median_mask_fraction": 0.001689453125,
+      "yolov8n": 0.0,
+      "yolo11n": 0.0,
+      "maskrcnn": 0.0
+    },
+    {
+      "name": "spoon",
+      "mean_valid_ap": 0.0,
+      "train_images": 22,
+      "valid_images": 15,
+      "valid_median_mask_fraction": 0.0018229166666666667,
+      "yolov8n": 0.0,
+      "yolo11n": 0.0,
+      "maskrcnn": 0.0
+    }
+  ]
+}
