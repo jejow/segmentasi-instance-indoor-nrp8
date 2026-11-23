@@ -23,3 +23,10 @@ Sumber dataset: https://universe.roboflow.com/panopticindoor/panoptic-indoor-seg
 - Paket publik berisi 11.845 mask dan 74 kelas aktif di seluruh split. Ada 65 kelas dengan contoh positif di train. Hash SHA-256 paket 640 px adalah 3bc2e86693d941dc5119e748137053c8b6bc9ce1bf408323ddd1129fb50a5ec4. Pemeriksaan byte gambar tidak menemukan duplikat persis lintas split.
 - Monitor beberapa profil gagal mengimpor paket dari environment UV sementara. Saya memasang versi CLI yang sama di virtual environment lokal yang persisten dan melanjutkan dengan ID permintaan runtime yang sudah tercatat. Run 04 dan 05 telah melaporkan batch nyata.
 - Diperiksa 41 foto asli dari folder Mobile Devices. Seluruhnya memiliki EXIF dan waktu pengambilan asli. Bukti metadata disimpan secara lokal dan dikecualikan dari Git.
+
+## 2026-11-24 03:05:28 +07:00 · Kelas sulit dan pemulihan evaluasi
+
+- Pilot tiga epoch selesai pada T4, dengan AP mask validasi semua kelas 2,66% (YOLOv8n), 2,24% (YOLO11n), dan 4,99% (Mask R-CNN). Ketiganya memilih **knife, light, spoon** menurut aturan peringkat yang direncanakan. Ketiga kelas memiliki AP pilot 0 dan menempati urutan teratas setelah seri dipecah memakai luas mask median relatif. Detail lengkap ada di peringkat-kesulitan.csv.
+- Pada test resmi v5 terdapat 19 mask knife pada 8 gambar, 295 mask light pada 98 gambar, dan 36 mask spoon pada 17 gambar. Jumlah ini diperiksa setelah daftar kelas dikunci.
+- Run penuh YOLOv8n dan YOLO11n mencapai 16 epoch, tetapi evaluasi pertama gagal mengemas prediksi. COCO.loadRes mengubah objek prediksi dengan menambahkan area bertipe NumPy uint32 dan bbox array. Evaluator kini memberi COCO salinan objek. Uji prediksi identik menghasilkan AP 1 dan prediksi tetap dapat diserialisasi setelah evaluasi. Riwayat asli kedua percobaan disimpan.
+- YOLOv8n mengulang pada profil 04. Pengulangan YOLO11n pada profil 05 ditolak oleh Colab sehingga pengulangan dialihkan ke profil 02 setelah pilot profil itu selesai. Mask R-CNN penuh di profil 06 memiliki salinan checkpoint akhir yang diminta dari runtime lama agar 16 epoch tidak perlu diulang.
