@@ -1,5 +1,16 @@
-param([switch]$Check)
+param(
+    [switch]$Check,
+    [ValidateSet('full','three','full-target')]
+    [string]$OnlyScope,
+    [ValidatePattern('^0[1-9]$')]
+    [string]$ProfileOverride,
+    [ValidatePattern('^-retry[0-9]+$')]
+    [string]$RetrySuffix
+)
 $ErrorActionPreference = 'Stop'
+if (($ProfileOverride -or $RetrySuffix) -and !$OnlyScope) {
+    throw 'Pilih satu kasus evaluasi bila mengganti profil atau run ID.'
+}
 Set-Location -LiteralPath $PSScriptRoot
 @"
 import hashlib, json, shutil
@@ -23,7 +34,12 @@ with ZipFile(dataset) as source, ZipFile(test.with_suffix(".part"), "w", ZIP_DEF
         if name.startswith("test/"):
             archive.writestr(name, source.read(name))
 test.with_suffix(".part").replace(test)
-for scope, record in ranking["best_by_scope"].items():
+choices = dict(ranking["best_by_scope"])
+choices["full-target"] = max(
+    (row for row in ranking["completed"] if row["scope"] == "full"),
+    key=lambda row: row["target_ap"],
+)
+for scope, record in choices.items():
     model_path = output / "winners" / scope / "checkpoint.pt"
     model_path.parent.mkdir(parents=True, exist_ok=True)
     with ZipFile(output / "runs" / record["output_run"] / "result.zip") as archive:
@@ -38,13 +54,15 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $stablePython = Join-Path $env:LOCALAPPDATA 'FP-K2-Training\segmentasi-nrp8-venv\Scripts\python.exe'
 $backend = 'C:\Users\junxi\OneDrive\Documents\Semester 5\Kompt Biomeds\FP\fp_rsna\eksperimen_model\03_colab\colab_project.py'
 $launcher = 'C:\Users\junxi\.agents\skills\colab\scripts\colab.ps1'
-foreach ($scope in @('full','three')) {
-    $profile = if ($scope -eq 'full') { '02' } else { '09' }
+$profiles = @{full='02';three='09';'full-target'='03'}
+foreach ($scope in @('full','three','full-target')) {
+    if ($OnlyScope -and $scope -ne $OnlyScope) { continue }
+    $profile = if ($ProfileOverride) { $ProfileOverride } else { $profiles[$scope] }
     $checkpoint = "output/tuning/winners/$scope/checkpoint.pt"
     $testDataset = 'output/tuning/test-v5.zip'
     $launch = @(
         'start','train.py','--root',$PSScriptRoot,'--project','segmentasi-indoor-tuning',
-        '--run',("test-best-" + $scope),'--profile',$profile,'--accelerator','T4',
+        '--run',("test-best-" + $scope + $RetrySuffix),'--profile',$profile,'--accelerator','T4',
         '--title','Segmentasi indoor: perbaikan preprocessing',
         '--dataset','Panoptic Indoor Segmentation v5, train 397 / valid 166',
         '--model','YOLOv8n-seg','--method','Evaluasi checkpoint terpilih pada test resmi',
