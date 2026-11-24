@@ -1,11 +1,13 @@
 """Train or evaluate one instance-segmentation model on the prepared COCO data."""
 import argparse
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import csv
 import hashlib
+import math
+import os
 import random
 from time import monotonic
 from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
@@ -61,7 +63,48 @@ def category_table(manifest, classes):
     return {names.index(name) + 1: label for label, name in enumerate(classes)}
 
 
-def write_yolo_labels(root, categories, manifest):
+def sampled_yolo_images(root, categories, policy, seed, draws):
+    """Keep every training image and add seed-fixed repeats at equal epoch size."""
+    base = root / "train"
+    gt = load_json(base / "gt.json")
+    images = gt["images"]
+    if draws < len(images):
+        raise ValueError("Epoch size must preserve every original training image.")
+    classes_by_image = defaultdict(set)
+    for ann in gt["annotations"]:
+        if ann["category_id"] in categories and not ann["iscrowd"]:
+            classes_by_image[ann["image_id"]].add(ann["category_id"])
+    frequency = Counter(category for labels in classes_by_image.values() for category in labels)
+    weights = []
+    for image in images:
+        labels = classes_by_image[image["id"]]
+        if policy == "repeat-factor":
+            weight = max((math.sqrt(.05 * len(images) / frequency[c]) for c in labels), default=1)
+            weights.append(max(1, weight))
+        elif policy == "foreground":
+            weights.append(int(bool(labels)))
+        else:
+            weights.append(1)
+    if not sum(weights):
+        raise ValueError("Sampling found no foreground images.")
+    extra = random.Random(seed).choices(images, weights=weights, k=draws - len(images))
+    combined = images + extra
+    sampled = root / "sampled"
+    for part in ("images", "labels"):
+        (sampled / part).mkdir(parents=True, exist_ok=True)
+    for index, image in enumerate(combined):
+        original = Path(image["file_name"])
+        new_name = f"{index:05d}{original.suffix}"
+        os.link(base / "images" / original, sampled / "images" / new_name)
+        os.link(base / "labels" / original.with_suffix(".txt"),
+                sampled / "labels" / Path(new_name).with_suffix(".txt"))
+    positives = sum(bool(classes_by_image[image["id"]]) for image in combined)
+    print(f"Sampling {policy}: {len(images)} unique images, {len(combined)} records, "
+          f"{positives} records with foreground.", flush=True)
+    return "sampled/images"
+
+
+def write_yolo_labels(root, categories, manifest, args):
     from ultralytics.data.converter import merge_multi_segment
     import yaml
 
@@ -89,9 +132,13 @@ def write_yolo_labels(root, categories, manifest):
             (labels / Path(image["file_name"]).with_suffix(".txt")).write_text(
                 "".join(row + "\n" for row in rows), encoding="utf-8"
             )
+    policy = getattr(args, "sampling", "native")
+    train_images = "train/images"
+    if policy != "native":
+        train_images = sampled_yolo_images(root, categories, policy, args.seed, args.epoch_images)
     yaml_file = root / "segmentation.yaml"
     yaml_file.write_text(yaml.safe_dump({
-        "path": str(root.resolve()), "train": "train/images", "val": "valid/images",
+        "path": str(root.resolve()), "train": train_images, "val": "valid/images",
         "names": {label: manifest["categories"][id_ - 1] for id_, label in categories.items()},
     }), encoding="utf-8")
     return yaml_file
@@ -102,7 +149,7 @@ def train_yolo(args, root, classes, manifest, work):
 
     settings.update({"wandb": False, "mlflow": False, "tensorboard": False})
     model = YOLO(YOLO_WEIGHTS[args.model])
-    data = write_yolo_labels(root, classes, manifest)
+    data = write_yolo_labels(root, classes, manifest, args)
     deadline = monotonic() + 60 * args.minutes
 
     def on_batch(trainer):
@@ -126,15 +173,17 @@ def train_yolo(args, root, classes, manifest, work):
     model.add_callback("on_train_batch_end", on_batch)
     model.add_callback("on_train_epoch_end", on_epoch)
     model.add_callback("on_fit_epoch_end", stop_at_budget)
+    lighting = getattr(args, "lighting_augmentation", False)
     model.train(
         data=str(data), task="segment", imgsz=manifest["size"], epochs=args.epochs,
         batch=args.yolo_batch, workers=args.workers, seed=args.seed, device=args.device,
         project=str(work), name="ultralytics", save=True, exist_ok=False, plots=False,
         patience=0, optimizer="AdamW", lr0=.001, lrf=.1,
         cos_lr=True, nbs=args.yolo_batch, weight_decay=.0005,
-        hsv_h=0, hsv_s=0, hsv_v=0, degrees=0, translate=0, scale=0,
+        hsv_h=0, hsv_s=.15 if lighting else 0, hsv_v=.25 if lighting else 0, degrees=0, translate=0, scale=0,
         shear=0, perspective=0, fliplr=.5, flipud=0, mosaic=0, mixup=0,
         copy_paste=0, close_mosaic=0, overlap_mask=False, deterministic=False,
+        mask_ratio=getattr(args, "mask_ratio", 4),
     )
     run = work / "ultralytics"
     checkpoint = run / "weights" / "last.pt"
@@ -395,6 +444,10 @@ def run(args):
             "completed_epochs": actual_epochs, "training_seconds": training_seconds,
             "total_seconds": monotonic() - training_start, "dataset_sha256": dataset_sha,
             "confidence": CONFIDENCE, "max_detections": MAX_DETECTIONS, "scores": evals,
+            "sampling": getattr(args, "sampling", "native"),
+            "epoch_images": getattr(args, "epoch_images", None) if getattr(args, "sampling", "native") != "native" else None,
+            "mask_ratio": getattr(args, "mask_ratio", 4) if args.model in YOLO_WEIGHTS else None,
+            "lighting_augmentation": getattr(args, "lighting_augmentation", False),
         }
         summary_path = work / "summary.json"
         write_json(summary_path, summary)
@@ -428,4 +481,11 @@ if __name__ == "__main__":
     cli.add_argument("--pilot", action="store_true")
     cli.add_argument("--checkpoint", type=Path)
     cli.add_argument("--eval-splits", nargs="+", default=["valid", "test"])
-    run(cli.parse_args())
+    cli.add_argument("--sampling", choices=["native", "uniform", "repeat-factor", "foreground"], default="native")
+    cli.add_argument("--epoch-images", type=int, default=640)
+    cli.add_argument("--mask-ratio", type=int, choices=[2, 4], default=4)
+    cli.add_argument("--lighting-augmentation", action="store_true")
+    options = cli.parse_args()
+    if options.sampling != "native" and options.model not in YOLO_WEIGHTS:
+        cli.error("--sampling is supported by the YOLO training path.")
+    run(options)
