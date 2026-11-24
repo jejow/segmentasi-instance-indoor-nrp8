@@ -386,13 +386,15 @@ def predict_maskrcnn(args, directory, gt, checkpoint, classes, size):
     model.load_state_dict(torch.load(checkpoint, map_location="cpu", weights_only=True))
     model.to(device).eval()
     reverse = {label + 1: id_ for id_, label in classes.items()}
-    for image in gt["images"]:
+    for index, image in enumerate(gt["images"], start=1):
         pixels = open_image(directory / image["file_name"]).to(device).float().div_(255)
         with amp_context(device):
             result = model([pixels])[0]
         labels = [reverse[int(label)] for label in result["labels"].tolist()]
         masks = (result["masks"][:, 0] >= .5).cpu().numpy()
         yield from encode_predictions(image["id"], labels, result["scores"].tolist(), masks)
+        if index % 25 == 0:
+            print(f"Inference: {index}/{len(gt['images'])} images", flush=True)
 
 
 def evaluate_split(args, root, split, checkpoint, classes, manifest, output):
@@ -469,7 +471,7 @@ def run(args):
             for file in sorted(work.glob("predictions-*.json")):
                 archive.write(file, file.name)
         temporary_output.replace(args.output)
-        print(f"Saved {args.output} with real training records.", flush=True)
+        print(f"Saved evaluation artifact: {args.output}", flush=True)
 
 
 if __name__ == "__main__":
