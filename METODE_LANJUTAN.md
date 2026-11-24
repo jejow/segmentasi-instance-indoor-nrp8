@@ -12,3 +12,9 @@ Baseline YOLOv8n-seg dipakai untuk ablasi agar arsitektur, seed 42, bobot awal, 
 - **Tiga kelas NRP 8.** Bandingkan sampling seragam dengan tambahan 243 gambar positif. Semua 397 gambar asli tetap masuk, sehingga varian positif memuat 286 dari 640 sampel dengan foreground. Pakai kelas yang telah dikunci dari pilot awal.
 
 Target 32 epoch dan 640 sampel per epoch untuk enam run. Gunakan checkpoint epoch terakhir dan 166 foto validasi yang sama. Bandingkan hanya dalam kelompok kelas yang sama. Test resmi serta foto HP disisihkan dari pemilihan metode.
+
+## 2026-11-24 15:43:39 +07:00 · Pertimbangan implementasi
+
+- Dari ekspor asli, 16/397 foto train punya sisi terpanjang lebih dari 640 piksel. Upscale global 960 akan memperbesar sebagian besar gambar tanpa data piksel baru. Putaran ini memakai kanvas 640 agar compute diprioritaskan ke sampling dan target mask.
+- Ultralytics 8.3.230 menyelaraskan raster mask target ke ukuran prototipe mask pada loss. Mask_ratio 2 hanya mengubah rasterisasi awal. Sumber: https://github.com/ultralytics/ultralytics/blob/v8.3.230/ultralytics/utils/loss.py
+- Rujukan prosedur penelusuran: Kassis, Agarwal, He, Patel, dan Brueckner (2026), Scientific Agent Skills, arXiv:2609.00065. https://arxiv.org/abs/2609.00065
