@@ -108,15 +108,15 @@ Di bawah protokol ini, Mask R-CNN v1 memimpin tiga baseline pada kedua domain. R
 
 ## Bukti audit dan demo
 
-Gambar di bawah memperlihatkan hasil perubahan pada dua foto. Pada baris pertama, satu mask gabungan diganti dengan mask kursi dan permukaan meja terpisah. Pada baris kedua, mask menutupi objek utama yang sebelumnya kosong. Skrip demo sudah diuji pada satu foto dengan ambang 0,15 dan menghasilkan 16 mask. Untuk sesi penilaian, argumen threshold dapat diubah pada foto yang baru diambil. [Foto demo lokal](output/demo/hasil-ujicoba.png) · [Skrip demo](demo_segmentasi.py)
+Baris pertama memperlihatkan kursi dan meja yang dipisahkan. Baris kedua memperlihatkan penambahan mask untuk objek utama pada foto yang sebelumnya kosong. Skrip demo menghasilkan 16 mask pada satu foto dengan ambang 0,15. Argumen threshold dapat diubah saat memakai foto baru. [Foto demo lokal](output/demo/hasil-ujicoba.png) · [Skrip demo](demo_segmentasi.py)
 
 ![Gambar 3. Foto asli, overlay lama, dan overlay setelah perbaikan anotasi per objek.](output/test-pribadi/perbaikan-mask.jpg)
 
 ## Referensi metode
 
-He, K., Gkioxari, G., Dollár, P., dan Girshick, R. 2017. Mask R-CNN. IEEE International Conference on Computer Vision. [Artikel](https://openaccess.thecvf.com/content_iccv_2017/html/He_Mask_R-CNN_ICCV_2017_paper.html)
+He, K., Gkioxari, G., Dollár, P., dan Girshick, R. 2017. Mask R-CNN. ICCV. [Artikel](https://openaccess.thecvf.com/content_iccv_2017/html/He_Mask_R-CNN_ICCV_2017_paper.html)
 
-Gupta, A., Dollár, P., dan Girshick, R. 2019. LVIS: A Dataset for Large Vocabulary Instance Segmentation. IEEE/CVF Conference on Computer Vision and Pattern Recognition. [Artikel](https://openaccess.thecvf.com/content_CVPR_2019/html/Gupta_LVIS_A_Dataset_for_Large_Vocabulary_Instance_Segmentation_CVPR_2019_paper.html)
+Gupta, A., Dollár, P., dan Girshick, R. 2019. LVIS: A Dataset for Large Vocabulary Instance Segmentation. CVPR. [Artikel](https://openaccess.thecvf.com/content_CVPR_2019/html/Gupta_LVIS_A_Dataset_for_Large_Vocabulary_Instance_Segmentation_CVPR_2019_paper.html)
 
 Torchvision. Spesifikasi Mask R-CNN ResNet-50 FPN v2. [Dokumentasi model](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.detection.maskrcnn_resnet50_fpn_v2.html)
 

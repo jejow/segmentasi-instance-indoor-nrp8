@@ -127,7 +127,7 @@ def render(source, destination):
                 caption, path = match.groups()
                 story.append(KeepTogether([
                     figure(source.parent / path,
-                           max_height=210 if section == "Bukti audit dan demo" else 225),
+                           max_height=185 if section == "Bukti audit dan demo" else 225),
                     Spacer(1, 5),
                     Paragraph(markup(caption), typography["caption"]),
                 ]))
@@ -152,7 +152,8 @@ def render(source, destination):
             else:
                 story.append(data_table(rows, typography))
         else:
-            story.append(Paragraph(markup(line), typography["body"]))
+            style = "caption" if section == "Referensi metode" else "body"
+            story.append(Paragraph(markup(line), typography[style]))
 
     def footer(canvas, document):
         canvas.setStrokeColor(LINE)

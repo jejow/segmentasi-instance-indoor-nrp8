@@ -18,4 +18,4 @@ Perbaikannya adalah menumpuk poligon COCO pada tiga versi tiap gambar dan memeri
 
 Codex membantu mengoperasikan Smart Select per objek, mengoreksi kelas serta kontur saat memeriksa overlay, dan menulis skrip evaluasi foto pribadi. Fitur Roboflow Find Objects with AI tidak dipakai dalam pengerjaan ini. Ekspor v3 memiliki mask pada seluruh foto indoor tetapi sebagian objek masih terlewat atau digabung. Status ini dicatat saat melaporkan angka test eksternal eksploratif. Foto ponsel dievaluasi lokal.
 
-Saat pengisian kelas, editor sempat menerima teks lama dari clipboard. Mask meja kemudian diperbaiki menjadi \`table-merged\` melalui pilihan kelas yang diperiksa di layar. Audit v3 tidak menemukan anotasi yang memakai kelas di luar taksonomi publik.
+Saat pengisian kelas, editor sempat menerima teks lama dari clipboard. Mask meja kemudian diperbaiki menjadi `table-merged` melalui pilihan kelas yang diperiksa di layar. Audit v3 tidak menemukan anotasi yang memakai kelas di luar taksonomi publik.
