@@ -10,6 +10,8 @@ OpenAI Codex membantu membaca ketentuan NRP 8, merancang hipotesis dan eksperime
 
 > kerjakan dengan foto itu. kerjakan denganteliti sampe layak
 
+> kamu edit lagi laporan supa lebih lengkap baik visualisasi dan isinya [...] template laporan gunakan hitam putih gaya korporate aja
+
 ## Contoh saran AI yang perlu diperbaiki
 
 Implementasi awal mencoba menyelaraskan gambar dengan anotasi memakai orientasi EXIF. Uji persiapan menunjukkan empat file potret memiliki dimensi 480×640, sedangkan anotasi merujuk ke 640×480. Keempat file tidak memiliki tag EXIF orientasi. Memaksakan resize akan membuat mask menutupi objek yang keliru.
@@ -21,3 +23,5 @@ Codex membantu mengoperasikan Smart Select per objek, mengoreksi kelas serta kon
 Saat pengisian kelas, editor sempat menerima teks lama dari clipboard. Mask meja kemudian diperbaiki menjadi `table-merged` melalui pilihan kelas yang diperiksa di layar. Audit v3 tidak menemukan anotasi yang memakai kelas di luar taksonomi publik.
 
 Pada putaran perbaikan, Codex menerapkan transfer bobot prediktor COCO untuk kelas yang namanya cocok persis, menjalankan uji ukuran input 640 dan 800 px, serta membantu memeriksa mask kursi dan jam satu per satu pada tiga foto. Ketiga foto tetap berada di job anotasi Roboflow. Catatan putaran perbaikan memakai hasil validasi publik untuk pemilihan checkpoint. [Protokol uji](PROTOKOL_PERBAIKAN.md)
+
+Pada revisi laporan, Codex memakai Humanizer untuk menyunting kalimat dan Scientific Writing untuk menelusuri angka ke log, CSV, dan prediksi tersimpan. Uji gamma diulang dengan snapshot v3 dan kontrol yang cocok. Grafik dibuat dari hasil evaluasi yang disimpan. [Rekap eksperimen](bukti/hasil/ringkasan.json) · [Scientific Agent Skills](https://arxiv.org/abs/2609.00065)

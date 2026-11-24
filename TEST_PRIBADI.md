@@ -47,3 +47,5 @@ Pada evaluasi v3, `knife` mempunyai satu mask pada satu foto, `light` 105 mask p
 | 1000865831 | Kotak jam pada v2 sudah dikonversi menjadi mask pada v3. |
 
 Skor v3 merupakan evaluasi eksploratif. Cakupan objek dan pemisahan instance pada foto yang ditandai masih membatasi interpretasi. Berkas gambar asli dan overlay tidak dimasukkan ke riwayat Git.
+
+Koreksi setelah ekspor v3 memisahkan mask kursi di 1000865803 dan 1000865805 serta menambah mask kursi dan jam di 1000865797. Evaluasi utama memakai snapshot v3 yang dibekukan. [Catatan koreksi di logbook](LOGBOOK.md)

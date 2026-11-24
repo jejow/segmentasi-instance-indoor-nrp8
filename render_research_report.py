@@ -1,31 +1,32 @@
 """Render the study Markdown and its local figures as an A4 report."""
 import argparse
 from html import escape
+from io import BytesIO
 import re
 from pathlib import Path
 
-from PIL import Image as Raster
+from PIL import Image as Raster, ImageOps
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_LEFT
+from reportlab.lib.enums import TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
-    Image, KeepTogether, LongTable, PageBreak, Paragraph, SimpleDocTemplate,
+    HRFlowable, Image, KeepTogether, LongTable, PageBreak, Paragraph, SimpleDocTemplate,
     Spacer, TableStyle,
 )
 
 
-INK = colors.HexColor("#182B3D")
-MUTED = colors.HexColor("#516779")
-BLUE = colors.HexColor("#205987")
-TEAL = colors.HexColor("#086B63")
-SHADE = colors.HexColor("#EFF5F8")
-LINE = colors.HexColor("#D8E4EA")
+INK = colors.HexColor("#171717")
+MUTED = colors.HexColor("#515151")
+SHADE = colors.HexColor("#F1F1F1")
+LINE = colors.HexColor("#CFCFCF")
 MARGIN = 50
 WIDTH = A4[0] - MARGIN * 2
 LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+LOCAL_FIGURE = re.compile(r"^<!-- figure: (.+?) \| (.+) -->$")
+NUMBER = re.compile(r"[+-]?\d+(?:[.,]\d+)*(?:\s*%|\s+poin)?")
 
 
 def fonts():
@@ -41,36 +42,42 @@ def fonts():
 
 def styles():
     regular, bold = fonts()
-    body = ParagraphStyle("body", fontName=regular, fontSize=10.2, leading=14.7,
+    body = ParagraphStyle("body", fontName=regular, fontSize=10.35, leading=14.45,
                           textColor=INK, spaceAfter=7, alignment=TA_LEFT,
                           allowWidows=0, allowOrphans=0)
     def variant(name, **properties):
         return ParagraphStyle(name, parent=body, **properties)
     return {
-        "title": variant("title", fontName=bold, fontSize=29, leading=34,
-                         spaceAfter=12, keepWithNext=True),
-        "meta": variant("meta", fontName=bold, textColor=TEAL, spaceAfter=16, keepWithNext=True),
-        "head": variant("head", fontName=bold, textColor=BLUE, fontSize=16, leading=20,
-                        spaceBefore=13, spaceAfter=6, keepWithNext=True),
+        "title": variant("title", fontName=bold, fontSize=34, leading=39,
+                         spaceBefore=25, spaceAfter=15, keepWithNext=True),
+        "meta": variant("meta", fontName=bold, fontSize=10, textColor=MUTED, spaceAfter=12, keepWithNext=True),
+        "head": variant("head", fontName=bold, fontSize=18, leading=22,
+                        spaceBefore=9, spaceAfter=9, keepWithNext=True),
+        "subhead": variant("subhead", fontName=bold, fontSize=11.8, leading=15,
+                           spaceBefore=8, spaceAfter=5, keepWithNext=True),
         "body": body,
+        "list": variant("list", leftIndent=14, firstLineIndent=-14),
         "cell": variant("cell", fontSize=9, leading=12, spaceAfter=0),
+        "cell_num": variant("cell_num", fontSize=9, leading=12, alignment=TA_RIGHT, spaceAfter=0),
         "header": variant("header", fontName=bold, fontSize=9, leading=12,
                           textColor=colors.white, spaceAfter=0),
-        "caption": variant("caption", fontSize=8, leading=11, textColor=MUTED, spaceAfter=9),
-        "case": variant("case", fontName=bold, fontSize=11, leading=15, textColor=TEAL, spaceAfter=4),
+        "header_num": variant("header_num", fontName=bold, fontSize=9, leading=12,
+                              alignment=TA_RIGHT, textColor=colors.white, spaceAfter=0),
+        "caption": variant("caption", fontSize=8.6, leading=11.4, textColor=MUTED, spaceAfter=9),
+        "case": variant("case", fontName=bold, fontSize=11, leading=15, spaceAfter=4),
     }
 
 
 def markup(line):
     line = escape(line.strip().replace("–", "-").replace("−", "-"))
     line = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", line)
-    line = re.sub(r"`([^`]+)`", r"<font color='#086b63'>\1</font>", line)
+    line = re.sub(r"`([^`]+)`", r"<font color='#343434'>\1</font>", line)
 
     def anchor(match):
         label, location = match.groups()
         if location.startswith(("https://", "http://")):
-            return f'<link href="{location}" color="#205987">{label}</link>'
-        return f'<font color="#205987">{label}</font>'
+            return f'<link href="{location}" color="#212121"><u>{label}</u></link>'
+        return f'<font color="#414141">{label}</font>'
 
     return LINK.sub(anchor, line)
 
@@ -78,8 +85,11 @@ def markup(line):
 def figure(path, limit=WIDTH, max_height=225):
     with Raster.open(path) as img:
         width, height = img.size
+        raster = BytesIO()
+        ImageOps.grayscale(img).save(raster, format="PNG")
+        raster.seek(0)
     scale = min(limit / width, max_height / height)
-    output = Image(str(path), width=width * scale, height=height * scale)
+    output = Image(raster, width=width * scale, height=height * scale)
     output.hAlign = "LEFT"
     return output
 
@@ -88,18 +98,20 @@ def data_table(rows, typography):
     columns = len(rows[0])
     lead_weight = 1.7 if columns >= 4 else 1.4
     unit = WIDTH / (columns - 1 + lead_weight)
-    content = [
-        [Paragraph(markup(cell), typography["header" if i == 0 else "cell"]) for cell in row]
-        for i, row in enumerate(rows)
-    ]
+    numerical = [all(NUMBER.fullmatch(row[col].strip()) for row in rows[1:]) for col in range(columns)]
+    content = []
+    for i, row in enumerate(rows):
+        style = "header" if i == 0 else "cell"
+        content.append([Paragraph(markup(cell), typography[style + ("_num" if numeric else "")])
+                        for cell, numeric in zip(row, numerical, strict=True)])
     table = LongTable(content, colWidths=[lead_weight * unit, *(unit for _ in range(columns - 1))],
                       repeatRows=1, hAlign="LEFT", spaceAfter=9)
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), BLUE),
+        ("BACKGROUND", (0, 0), (-1, 0), INK),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, SHADE]),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("TOPPADDING", (0, 0), (-1, -1), 7),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
         ("LINEBELOW", (0, -1), (-1, -1), .5, LINE),
     ]))
     return table
@@ -116,20 +128,37 @@ def render(source, destination):
             continue
         if line.startswith("# "):
             story.append(Paragraph(markup(line[2:]), typography["title"]))
-        elif line.startswith("**Studi komputasional"):
+        elif line.startswith(("**Visi Komputer", "**Studi komputasional")):
             story.append(Paragraph(markup(line), typography["meta"]))
+            story.append(HRFlowable(width="100%", thickness=1.3, color=INK, spaceBefore=3, spaceAfter=14))
+        elif line == "<!-- page-break -->":
+            story.append(PageBreak())
         elif line.startswith("## "):
             section = line[3:]
             if section == "Bukti audit dan demo":
                 story.append(PageBreak())
             story.append(Paragraph(markup(section), typography["head"]))
+        elif line.startswith("### "):
+            story.append(Paragraph(markup(line[4:]), typography["subhead"]))
+        elif local := LOCAL_FIGURE.fullmatch(line):
+            path, caption = local.groups()
+            attachment = source.parent / path
+            if attachment.is_file():
+                height = {"Studi kasus kegagalan": 145, "Studi kasus dengan cahaya sulit": 116}.get(section, 155)
+                story.append(KeepTogether([
+                    figure(attachment, max_height=height),
+                    Spacer(1, 5),
+                    Paragraph(markup(caption), typography["caption"]),
+                ]))
+            else:
+                story.append(Paragraph(markup(caption + " Bukti foto tersedia pada paket lokal."), typography["caption"]))
         elif line.startswith("!["):
             match = LINK.search(line)
             if match:
                 caption, path = match.groups()
                 story.append(KeepTogether([
                     figure(source.parent / path,
-                           max_height=185 if section == "Bukti audit dan demo" else 225),
+                           max_height=184 if section == "Bukti audit dan demo" else 192),
                     Spacer(1, 5),
                     Paragraph(markup(caption), typography["caption"]),
                 ]))
@@ -154,22 +183,29 @@ def render(source, destination):
             else:
                 story.append(data_table(rows, typography))
         else:
-            style = "caption" if section == "Referensi metode" else "body"
+            style = "list" if re.match(r"\d+\. ", line) else "caption" if section == "Referensi metode" else "body"
             story.append(Paragraph(markup(line), typography[style]))
 
     def footer(canvas, document):
+        if document.page > 1:
+            canvas.setFillColor(MUTED)
+            canvas.setFont(typography["header"].fontName, 8)
+            canvas.drawString(MARGIN, A4[1] - 32, "VISI KOMPUTER")
+            canvas.drawRightString(A4[0] - MARGIN, A4[1] - 32, "CPMK 3  /  NRP 8")
+            canvas.setStrokeColor(LINE)
+            canvas.line(MARGIN, A4[1] - 40, A4[0] - MARGIN, A4[1] - 40)
         canvas.setStrokeColor(LINE)
         canvas.line(MARGIN, 41, A4[0] - MARGIN, 41)
         canvas.setFillColor(MUTED)
         canvas.setFont(typography["body"].fontName, 8)
-        canvas.drawString(MARGIN, 26, "Segmentasi instance indoor  |  NRP 8")
-        canvas.drawRightString(A4[0] - MARGIN, 26, str(document.page))
+        canvas.drawString(MARGIN, 26, "Segmentasi instance indoor")
+        canvas.drawRightString(A4[0] - MARGIN, 26, f"{document.page:02d}")
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     document = SimpleDocTemplate(
-        str(destination), pagesize=A4, topMargin=48, bottomMargin=57,
+        str(destination), pagesize=A4, topMargin=52, bottomMargin=55,
         leftMargin=MARGIN, rightMargin=MARGIN,
-        title="Segmentasi instance indoor dan transfer ke foto ponsel",
+        title="Segmentasi instance pada lingkungan indoor nyata",
         subject="Laporan eksperimen visi komputer NRP 8",
     )
     document.build(story, onFirstPage=footer, onLaterPages=footer)
