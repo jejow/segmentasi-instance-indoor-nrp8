@@ -27,7 +27,7 @@ except ModuleNotFoundError:
         pass
 
 YOLO_WEIGHTS = {"yolov8n": "yolov8n-seg.pt", "yolo11n": "yolo11n-seg.pt"}
-MODELS = (*YOLO_WEIGHTS, "maskrcnn")
+MODELS = (*YOLO_WEIGHTS, "maskrcnn", "maskrcnn-v2")
 CONFIDENCE = 0.005
 MAX_DETECTIONS = 100
 
@@ -235,13 +235,20 @@ def collate_samples(batch):
     return tuple(zip(*batch))
 
 
-def build_maskrcnn(size, number_classes, pretrained):
-    from torchvision.models.detection import MaskRCNN_ResNet50_FPN_Weights, maskrcnn_resnet50_fpn
+def build_maskrcnn(size, number_classes, pretrained, variant="maskrcnn"):
+    from torchvision.models.detection import (
+        MaskRCNN_ResNet50_FPN_Weights, MaskRCNN_ResNet50_FPN_V2_Weights,
+        maskrcnn_resnet50_fpn, maskrcnn_resnet50_fpn_v2,
+    )
     from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
     from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 
-    model = maskrcnn_resnet50_fpn(
-        weights=MaskRCNN_ResNet50_FPN_Weights.DEFAULT if pretrained else None,
+    builder, weights = {
+        "maskrcnn": (maskrcnn_resnet50_fpn, MaskRCNN_ResNet50_FPN_Weights.DEFAULT),
+        "maskrcnn-v2": (maskrcnn_resnet50_fpn_v2, MaskRCNN_ResNet50_FPN_V2_Weights.DEFAULT),
+    }[variant]
+    model = builder(
+        weights=weights if pretrained else None,
         weights_backbone=None, min_size=size, max_size=size,
         box_score_thresh=CONFIDENCE, box_detections_per_img=MAX_DETECTIONS,
     )
@@ -266,7 +273,7 @@ def train_maskrcnn(args, root, classes, manifest, work):
         pin_memory=device.type == "cuda", persistent_workers=args.workers > 0,
         generator=torch.Generator().manual_seed(args.seed),
     )
-    model = build_maskrcnn(size, len(classes), pretrained=True).to(device)
+    model = build_maskrcnn(size, len(classes), pretrained=True, variant=args.model).to(device)
     roi_count = 0
 
     def track_roi_count(_module, _inputs, outputs):
@@ -375,7 +382,7 @@ def predict_yolo(args, directory, gt, checkpoint, classes, size):
 @torch.inference_mode()
 def predict_maskrcnn(args, directory, gt, checkpoint, classes, size):
     device = torch.device("cuda:0" if args.device != "cpu" else "cpu")
-    model = build_maskrcnn(size, len(classes), pretrained=False)
+    model = build_maskrcnn(size, len(classes), pretrained=False, variant=args.model)
     model.load_state_dict(torch.load(checkpoint, map_location="cpu", weights_only=True))
     model.to(device).eval()
     reverse = {label + 1: id_ for id_, label in classes.items()}
