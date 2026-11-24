@@ -52,4 +52,4 @@ python build_report_evidence.py --figures-only
 python render_research_report.py
 ```
 
-Mode `--figures-only` memakai rekap yang tersedia dalam repo. PDF mengambil grafik tersebut dan menambahkan bukti foto bila berkas lokalnya tersedia. Untuk lima panel foto kasus, jalankan `inspect_failures.py --help` dan gunakan opsi `--monochrome` pada arsip evaluasi lokal.
+Mode `--figures-only` memakai rekap yang tersedia dalam repo. PDF mengambil grafik tersebut dan menambahkan bukti foto bila berkas lokalnya tersedia. Untuk membuat ulang lima panel foto kasus berwarna dari arsip evaluasi lokal, lihat opsi `inspect_failures.py --help`.

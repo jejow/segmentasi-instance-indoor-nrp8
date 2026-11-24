@@ -1,11 +1,10 @@
 """Render the study Markdown and its local figures as an A4 report."""
 import argparse
 from html import escape
-from io import BytesIO
 import re
 from pathlib import Path
 
-from PIL import Image as Raster, ImageOps
+from PIL import Image as Raster
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
@@ -20,7 +19,6 @@ from reportlab.platypus import (
 
 INK = colors.HexColor("#171717")
 MUTED = colors.HexColor("#515151")
-SHADE = colors.HexColor("#F1F1F1")
 LINE = colors.HexColor("#CFCFCF")
 MARGIN = 50
 WIDTH = A4[0] - MARGIN * 2
@@ -48,7 +46,7 @@ def styles():
     def variant(name, **properties):
         return ParagraphStyle(name, parent=body, **properties)
     return {
-        "title": variant("title", fontName=bold, fontSize=34, leading=39,
+        "title": variant("title", fontName=bold, fontSize=30, leading=35,
                          spaceBefore=25, spaceAfter=15, keepWithNext=True),
         "meta": variant("meta", fontName=bold, fontSize=10, textColor=MUTED, spaceAfter=12, keepWithNext=True),
         "head": variant("head", fontName=bold, fontSize=18, leading=22,
@@ -59,10 +57,9 @@ def styles():
         "list": variant("list", leftIndent=14, firstLineIndent=-14),
         "cell": variant("cell", fontSize=9, leading=12, spaceAfter=0),
         "cell_num": variant("cell_num", fontSize=9, leading=12, alignment=TA_RIGHT, spaceAfter=0),
-        "header": variant("header", fontName=bold, fontSize=9, leading=12,
-                          textColor=colors.white, spaceAfter=0),
+        "header": variant("header", fontName=bold, fontSize=9, leading=12, spaceAfter=0),
         "header_num": variant("header_num", fontName=bold, fontSize=9, leading=12,
-                              alignment=TA_RIGHT, textColor=colors.white, spaceAfter=0),
+                              alignment=TA_RIGHT, spaceAfter=0),
         "caption": variant("caption", fontSize=8.6, leading=11.4, textColor=MUTED, spaceAfter=9),
         "case": variant("case", fontName=bold, fontSize=11, leading=15, spaceAfter=4),
     }
@@ -85,11 +82,8 @@ def markup(line):
 def figure(path, limit=WIDTH, max_height=225):
     with Raster.open(path) as img:
         width, height = img.size
-        raster = BytesIO()
-        ImageOps.grayscale(img).save(raster, format="PNG")
-        raster.seek(0)
     scale = min(limit / width, max_height / height)
-    output = Image(raster, width=width * scale, height=height * scale)
+    output = Image(str(path), width=width * scale, height=height * scale)
     output.hAlign = "LEFT"
     return output
 
@@ -107,12 +101,11 @@ def data_table(rows, typography):
     table = LongTable(content, colWidths=[lead_weight * unit, *(unit for _ in range(columns - 1))],
                       repeatRows=1, hAlign="LEFT", spaceAfter=9)
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), INK),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, SHADE]),
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F4F4F4")),
+        ("GRID", (0, 0), (-1, -1), .45, LINE),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("TOPPADDING", (0, 0), (-1, -1), 6),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ("LINEBELOW", (0, -1), (-1, -1), .5, LINE),
     ]))
     return table
 
@@ -130,7 +123,7 @@ def render(source, destination):
             story.append(Paragraph(markup(line[2:]), typography["title"]))
         elif line.startswith(("**Visi Komputer", "**Studi komputasional")):
             story.append(Paragraph(markup(line), typography["meta"]))
-            story.append(HRFlowable(width="100%", thickness=1.3, color=INK, spaceBefore=3, spaceAfter=14))
+            story.append(HRFlowable(width="100%", thickness=.65, color=LINE, spaceBefore=3, spaceAfter=14))
         elif line == "<!-- page-break -->":
             story.append(PageBreak())
         elif line.startswith("## "):

@@ -1,4 +1,4 @@
-"""Collect traceable report metrics, original epoch logs, and monochrome figures."""
+"""Collect traceable report metrics, original epoch logs, and figures."""
 import argparse
 from collections import Counter, defaultdict
 import csv
@@ -266,8 +266,8 @@ def render_charts(data, destination):
     for ax, field, title in zip(axes, ("public_targets_pct", "phone_targets_pct"),
                                 ("Test publik · 359 foto", "Foto HP · 40 foto"), strict=True):
         for shift, condition, style in (
-            (-.18, "full", {"color": "#202020", "label": "Semua kelas"}),
-            (.18, "three", {"color": "#e5e5e5", "edgecolor": "#555555", "hatch": "///", "label": "Tiga kelas"}),
+            (-.18, "full", {"color": "#315E86", "label": "Semua kelas"}),
+            (.18, "three", {"color": "#A5D6CB", "edgecolor": "#236657", "hatch": "///", "label": "Tiga kelas"}),
         ):
             rows = [r for r in data["nrp8"] if r["condition"] == condition]
             bars = ax.bar([x + shift for x in range(3)], [r[field] for r in rows], .33, **style)
@@ -284,9 +284,9 @@ def render_charts(data, destination):
     for pos, row in enumerate(data["domain"]):
         public, phone = row["public_pct"], row["phone_pct"]
         ax.plot((public, phone), (pos, pos), color="#888888", linewidth=1.25, zorder=2)
-        ax.scatter(public, pos, marker="o", color="#191919", s=35, zorder=3,
+        ax.scatter(public, pos, marker="o", color="#315E86", s=35, zorder=3,
                    label="Publik" if pos == 0 else None)
-        ax.scatter(phone, pos, marker="s", facecolors="white", edgecolors="#242424", s=36, zorder=3,
+        ax.scatter(phone, pos, marker="s", facecolors="#A5D6CB", edgecolors="#236657", s=36, zorder=3,
                    label="Foto HP" if pos == 0 else None)
     ax.set_yticks(range(len(data["domain"])), [r["model"] for r in data["domain"]])
     ax.invert_yaxis()
@@ -302,7 +302,7 @@ def render_charts(data, destination):
         left = 0
         for key, label, shade, ink in zip(
             OUTCOMES, ("IoU di bawah 0,50", "Kelas lain saja", "Sekelas"),
-            ("#eeeeee", "#b6b6b6", "#242424"), ("#161616", "#171717", "#ffffff"), strict=True
+            ("#E7EDF2", "#E7BE84", "#315E86"), ("#161616", "#171717", "#ffffff"), strict=True
         ):
             share = 100 * row[key] / row["masks"]
             ax.barh(pos, share, left=left, height=.46, color=shade, edgecolor="#454545", linewidth=.45,
@@ -323,7 +323,7 @@ def render_charts(data, destination):
         for i, condition in enumerate(ordering):
             points = sorted((r for r in data["validation"] if r["condition"] == condition),
                             key=lambda r: r["seed"])
-            for row, dx, marker, fill in zip(points, (-.1, .1), ("o", "s"), ("#222222", "white"), strict=True):
+            for row, dx, marker, fill in zip(points, (-.1, .1), ("o", "s"), ("#315E86", "#A5D6CB"), strict=True):
                 ax.scatter(i+dx, row[field], marker=marker, edgecolors="#171717", facecolors=fill, s=32,
                            label=f"Seed {row['seed']}" if i == 0 else None, zorder=3)
             midpoint = sum(r[field] for r in points) / len(points)
@@ -341,9 +341,9 @@ def render_charts(data, destination):
     for pos, row in enumerate(data["gamma"]):
         before, after = row["control_pct"], row["gamma_pct"]
         ax.plot((before, after), (pos, pos), color="#777777", linewidth=1.2, zorder=2)
-        ax.scatter(before, pos, marker="o", facecolors="white", edgecolors="#181818", s=35, zorder=3,
+        ax.scatter(before, pos, marker="o", facecolors="white", edgecolors="#315E86", s=35, zorder=3,
                    label="Foto asal" if pos == 0 else None)
-        ax.scatter(after, pos, marker="s", color="#222222", s=31, zorder=3,
+        ax.scatter(after, pos, marker="s", color="#236657", s=31, zorder=3,
                    label="Gamma 0,65" if pos == 0 else None)
     ax.set_yticks(range(3), [f"{r['class']} · {r['instances']} mask" for r in data["gamma"]])
     ax.invert_yaxis()
