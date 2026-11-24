@@ -19,7 +19,11 @@ Dataset publik [Panoptic Indoor Segmentation v5](https://universe.roboflow.com/p
 
 ## Evaluasi foto sendiri
 
-Siapkan ekspor COCO dari foto yang sudah diaudit di Roboflow sebagai data eksternal. Gunakan `prepare_dataset.py --external-taxonomy data/panoptic-indoor-v5-640.json` untuk mencocokkan nama kelas dan menghasilkan satu split private. Pair evaluasi memakai `train.py --checkpoint <file> --dataset <zip> --eval-splits private`. Sertakan `--classes hard-classes.json` untuk model tiga kelas. Bandingkan kelas yang memiliki ground truth di kedua test set dan laporkan cakupan kelas.
+Auditi ekspor COCO job Roboflow dengan `audit_private_test.py <ekspor.zip>`. Jalankan `evaluate_private.py <ekspor.zip> <result.zip...> --output <folder>` dalam environment Python yang memiliki dependensi model. Skrip menyiapkan split indoor, mempertahankan taksonomi asli, dan menggunakan checkpoint yang sudah dibekukan. `compare_external.py <folder> <result.zip...> --difficult difficult-photos.json` menghasilkan tabel, skor per kelas, dan grafik kelas yang sama pada kedua domain. [Hasil dan batas evaluasi](LAPORAN_RISET.md)
+
+## Demo satu foto
+
+Jalankan `python demo_segmentasi.py <foto-baru.jpg> --threshold 0.15` dari environment model. Ganti threshold pada argumen untuk memperlihatkan perubahan jumlah mask. Checkpoint bawaan adalah Mask R-CNN v2 seed 97. AP per kelas berasal dari evaluasi berground truth di `per-class.csv`. Foto demo hanya perlu satu gambar baru.
 
 ## Artefak
 
