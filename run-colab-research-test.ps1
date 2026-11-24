@@ -1,14 +1,16 @@
 param(
     [ValidatePattern('^0[1-9]$')][string]$Profile = '07',
     [ValidatePattern('^[a-z0-9-]+$')][string]$Run = 'selected-public-test',
+    [string]$SelectionFile = 'output/research/research.json',
     [switch]$Check
 )
 $ErrorActionPreference = 'Stop'
-$result = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'output/research/research.json') -Raw | ConvertFrom-Json
+$result = Get-Content -LiteralPath (Join-Path $PSScriptRoot $SelectionFile) -Raw | ConvertFrom-Json
 $model = $result.selection.variant
 $selected = $result.selection.checkpoint
 $chosen = $result.runs | Where-Object run -EQ $selected | Select-Object -First 1
-$checkpoint = "output/research/$selected/checkpoint.pt"
+if (!$chosen) { throw 'Tidak ada checkpoint uji yang cocok dengan hasil pemilihan validasi.' }
+$checkpoint = ((Join-Path (Split-Path $SelectionFile -Parent) "$selected/checkpoint.pt") -replace '\\','/')
 $testDataset = 'output/tuning/test-v5.zip'
 $stablePython = Join-Path $env:LOCALAPPDATA 'FP-K2-Training/segmentasi-nrp8-venv/Scripts/python.exe'
 $backend = 'C:/Users/junxi/OneDrive/Documents/Semester 5/Kompt Biomeds/FP/fp_rsna/eksperimen_model/03_colab/colab_project.py'
@@ -25,6 +27,9 @@ $launch = @(
     '--train-arg=--checkpoint',"--train-arg=$checkpoint",'--train-arg=--dataset',"--train-arg=$testDataset",
     '--train-arg=--eval-splits','--train-arg=test'
 )
+if ($chosen.rcnn_size) {
+    $launch += @('--train-arg=--rcnn-size',"--train-arg=$($chosen.rcnn_size)")
+}
 if ($Check) { $launch += '--check' }
 if ((Test-Path -LiteralPath $stablePython) -and (Test-Path -LiteralPath $backend)) {
     $env:COLAB_CLI_REQUEST_TIMEOUT = '60'

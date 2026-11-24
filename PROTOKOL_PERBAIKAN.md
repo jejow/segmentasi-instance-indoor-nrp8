@@ -1,0 +1,9 @@
+# Uji perbaikan Mask R-CNN v2
+
+Putaran 24 November membandingkan dua perubahan pada Mask R-CNN R50-FPN v2. Inisialisasi transfer mempertahankan bobot klasifikasi, regresi kotak, dan kanal mask untuk kelas yang nama dan indeksnya dapat dipetakan persis ke kategori COCO. Lapisan upsampling mask yang dipakai bersama juga dipertahankan. Kelas baru tetap memakai inisialisasi acak. Resolusi 800 px dipakai sebagai ukuran input internal jaringan. Penilaian semua konfigurasi memakai koordinat dan mask acuan 640 px yang sama.
+
+Gunakan rancangan 2 × 2 untuk inisialisasi dan resolusi. Seed 42 dan 97, 20 epoch, batch 2, AdamW, dan Tensor Core AMP di T4 berlaku untuk seluruh kondisi. Arsip kontrol 640 px dengan inisialisasi acak tersedia dari replikasi sebelumnya. Enam run baru hanya menerima 397 gambar train dan 166 gambar validasi, disalin byte demi byte dari v5. Ukur mask AP50–95, AP50, AP75, AP small, dan AP tiga kelas NRP 8. Hasil dengan epoch kurang dari 20 dicatat sebagai belum sebanding.
+
+Pilih konfigurasi dengan rata-rata mask AP50–95 validasi tertinggi dari dua seed. Untuk selisih di bawah 0,05 poin persentase, pilih konfigurasi yang memakai input lebih kecil. Evaluasi satu checkpoint seed 97 dari konfigurasi baru yang mengungguli kontrol pada test publik. Seed 97 dipilih agar dapat dibandingkan dengan checkpoint publik sebelumnya. Ambang prediksi, batas deteksi, kelas, dan gambar uji tetap sama. Skor test publik sudah pernah dilihat pada eksperimen awal, sehingga putaran ini merupakan perbaikan eksploratif. Foto ponsel tidak dipakai untuk memilih konfigurasi.
+
+[Implementasi prediktor Mask R-CNN Torchvision](https://github.com/pytorch/vision/blob/main/torchvision/models/detection/mask_rcnn.py) · [Mask R-CNN, ICCV 2017](https://openaccess.thecvf.com/content_iccv_2017/html/He_Mask_R-CNN_ICCV_2017_paper.html)

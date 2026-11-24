@@ -123,6 +123,11 @@ def compare(public_paths, private_directory, difficult_file):
         for field in ("model", "class_names", "seed", "input_size", "confidence", "max_detections"):
             if public[field] != private[field]:
                 raise ValueError(f"{key} uses incompatible {field}.")
+        if public["model"].startswith("maskrcnn"):
+            public_size = public.get("rcnn_size") or public["input_size"]
+            private_size = private.get("rcnn_size") or private["input_size"]
+            if public_size != private_size:
+                raise ValueError(f"{key} uses incompatible internal input sizes.")
         native, external = public["scores"]["test"], private["scores"]["private"]
         common = supported(native) & supported(external)
         native_ap, external_ap = subset(native, common), subset(external, common)

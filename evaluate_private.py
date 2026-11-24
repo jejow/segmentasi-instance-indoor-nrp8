@@ -84,6 +84,8 @@ def evaluate_run(run, dataset, output, temporary, device, threads):
         copyfileobj(weights, sink)
         summary = json.loads(archive.read("summary.json"))
     write_json(classes, {"classes": summary["class_names"]})
+    resize = summary.get("rcnn_size")
+    resize_args = ["--rcnn-size", str(resize)] if resize is not None else []
     runner = (
         "import runpy, torch\n"
         f"torch.set_num_threads({threads})\n"
@@ -100,6 +102,7 @@ def evaluate_run(run, dataset, output, temporary, device, threads):
             "--eval-splits", "private",
             "--device", device,
             "--output", str(output / f"{name}.zip"),
+            *resize_args,
         ],
         check=True,
         cwd=Path(__file__).resolve().parent,
@@ -134,6 +137,9 @@ def update_run(run, dataset, output, temporary, device, threads, reuse):
     for field in ("class_names", "model", "seed", "input_size", "confidence", "max_detections"):
         if prior_summary[field] != summary[field]:
             raise ValueError(f"{name} has different cached settings for {field}.")
+    size = summary.get("rcnn_size") or summary["input_size"]
+    if (prior_summary.get("rcnn_size") or prior_summary["input_size"]) != size:
+        raise ValueError("Cached predictions used a different Mask R-CNN resize.")
     if prior_summary["dataset_sha256"] != sha256(prior_dataset):
         raise ValueError("Cached predictions and prepared snapshot hash differ.")
     with ZipFile(prior_dataset) as prior_zip, ZipFile(dataset) as new_zip:
@@ -162,7 +168,7 @@ def update_run(run, dataset, output, temporary, device, threads, reuse):
     model = summary["model"]
     classes = category_table(manifest, summary["class_names"])
     if additional:
-        args = argparse.Namespace(model=model, device=device)
+        args = argparse.Namespace(model=model, device=device, rcnn_size=summary.get("rcnn_size"))
         predict = predict_yolo if model in YOLO_WEIGHTS else predict_maskrcnn
         predictions.extend(predict(args, images, {**current, "images": additional},
                                    checkpoint, classes, manifest["size"]))

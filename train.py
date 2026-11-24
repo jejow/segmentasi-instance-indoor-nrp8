@@ -235,7 +235,28 @@ def collate_samples(batch):
     return tuple(zip(*batch))
 
 
-def build_maskrcnn(size, number_classes, pretrained, variant="maskrcnn"):
+@torch.no_grad()
+def transfer_coco_predictors(source_box, source_mask, target_box, target_mask,
+                             source_names, target_names):
+    source_ids = {name: label for label, name in enumerate(source_names) if label and name != "N/A"}
+    matches = [
+        (label, source_ids[name]) for label, name in enumerate(target_names, start=1)
+        if name in source_ids
+    ]
+    target_mask.conv5_mask.load_state_dict(source_mask.conv5_mask.state_dict())
+    for target, source in [(0, 0), *matches]:
+        target_box.cls_score.weight[target].copy_(source_box.cls_score.weight[source])
+        target_box.cls_score.bias[target].copy_(source_box.cls_score.bias[source])
+        target_slice = slice(4 * target, 4 * (target + 1))
+        source_slice = slice(4 * source, 4 * (source + 1))
+        target_box.bbox_pred.weight[target_slice].copy_(source_box.bbox_pred.weight[source_slice])
+        target_box.bbox_pred.bias[target_slice].copy_(source_box.bbox_pred.bias[source_slice])
+        target_mask.mask_fcn_logits.weight[target].copy_(source_mask.mask_fcn_logits.weight[source])
+        target_mask.mask_fcn_logits.bias[target].copy_(source_mask.mask_fcn_logits.bias[source])
+    return [target_names[label - 1] for label, _ in matches]
+
+
+def build_maskrcnn(size, number_classes, pretrained, variant="maskrcnn", transfer_names=None):
     from torchvision.models.detection import (
         MaskRCNN_ResNet50_FPN_Weights, MaskRCNN_ResNet50_FPN_V2_Weights,
         maskrcnn_resnet50_fpn, maskrcnn_resnet50_fpn_v2,
@@ -252,10 +273,20 @@ def build_maskrcnn(size, number_classes, pretrained, variant="maskrcnn"):
         weights_backbone=None, min_size=size, max_size=size,
         box_score_thresh=CONFIDENCE, box_detections_per_img=MAX_DETECTIONS,
     )
-    box_width = model.roi_heads.box_predictor.cls_score.in_features
-    mask_width = model.roi_heads.mask_predictor.conv5_mask.in_channels
-    model.roi_heads.box_predictor = FastRCNNPredictor(box_width, number_classes + 1)
-    model.roi_heads.mask_predictor = MaskRCNNPredictor(mask_width, 256, number_classes + 1)
+    source_box = model.roi_heads.box_predictor
+    source_mask = model.roi_heads.mask_predictor
+    box = FastRCNNPredictor(source_box.cls_score.in_features, number_classes + 1)
+    mask = MaskRCNNPredictor(source_mask.conv5_mask.in_channels, 256, number_classes + 1)
+    if transfer_names is not None:
+        if not pretrained or len(transfer_names) != number_classes:
+            raise ValueError("Transferring category weights requires COCO weights and ordered class names.")
+        matched = transfer_coco_predictors(
+            source_box, source_mask, box, mask, weights.meta["categories"], transfer_names,
+        )
+        print(f"Transferred COCO predictor weights for {len(matched)} classes: {', '.join(matched)}",
+              flush=True)
+    model.roi_heads.box_predictor = box
+    model.roi_heads.mask_predictor = mask
     return model
 
 
@@ -264,7 +295,7 @@ def amp_context(device):
 
 
 def train_maskrcnn(args, root, classes, manifest, work):
-    size = manifest["size"]
+    size = getattr(args, "rcnn_size", None) or manifest["size"]
     device = torch.device("cuda:0" if args.device != "cpu" else "cpu")
     train = root / "train"
     loader = DataLoader(
@@ -273,7 +304,11 @@ def train_maskrcnn(args, root, classes, manifest, work):
         pin_memory=device.type == "cuda", persistent_workers=args.workers > 0,
         generator=torch.Generator().manual_seed(args.seed),
     )
-    model = build_maskrcnn(size, len(classes), pretrained=True, variant=args.model).to(device)
+    transfer_names = None
+    if getattr(args, "rcnn_head_init", "random") == "coco-overlap":
+        transfer_names = [manifest["categories"][category_id - 1] for category_id in classes]
+    model = build_maskrcnn(size, len(classes), pretrained=True, variant=args.model,
+                           transfer_names=transfer_names).to(device)
     roi_count = 0
 
     def track_roi_count(_module, _inputs, outputs):
@@ -382,7 +417,8 @@ def predict_yolo(args, directory, gt, checkpoint, classes, size):
 @torch.inference_mode()
 def predict_maskrcnn(args, directory, gt, checkpoint, classes, size):
     device = torch.device("cuda:0" if args.device != "cpu" else "cpu")
-    model = build_maskrcnn(size, len(classes), pretrained=False, variant=args.model)
+    model = build_maskrcnn(getattr(args, "rcnn_size", None) or size, len(classes),
+                           pretrained=False, variant=args.model)
     model.load_state_dict(torch.load(checkpoint, map_location="cpu", weights_only=True))
     model.to(device).eval()
     reverse = {label + 1: id_ for id_, label in classes.items()}
@@ -404,7 +440,8 @@ def evaluate_split(args, root, split, checkpoint, classes, manifest, output):
     result = score_masks(gt, detections, classes.keys())
     if output is not None:
         write_json(output / f"predictions-{split}.json", detections)
-    print(f"{split}: AP={result['ap']}, AP50={result['ap50']}, AP75={result['ap75']}", flush=True)
+    print(f"{split}: AP={result['ap']}, AP50={result['ap50']}, AP75={result['ap75']}, "
+          f"AP small={result['ap_small']}", flush=True)
     return result
 
 
@@ -452,7 +489,16 @@ def run(args):
             "finished_at_utc": now(), "target_epochs": args.epochs if results else None,
             "completed_epochs": actual_epochs, "training_seconds": training_seconds,
             "total_seconds": monotonic() - training_start, "dataset_sha256": dataset_sha,
+            "parent_dataset_sha256": manifest.get("parent_archive_sha256", dataset_sha),
             "confidence": CONFIDENCE, "max_detections": MAX_DETECTIONS, "scores": evals,
+            "rcnn_size": (
+                getattr(args, "rcnn_size", None) or manifest["size"]
+                if args.model not in YOLO_WEIGHTS else None
+            ),
+            "rcnn_head_init": (
+                getattr(args, "rcnn_head_init", "random")
+                if args.model not in YOLO_WEIGHTS and results else None
+            ),
             "sampling": getattr(args, "sampling", "native"),
             "epoch_images": getattr(args, "epoch_images", None) if getattr(args, "sampling", "native") != "native" else None,
             "mask_ratio": getattr(args, "mask_ratio", 4) if args.model in YOLO_WEIGHTS else None,
@@ -486,6 +532,8 @@ if __name__ == "__main__":
     cli.add_argument("--workers", type=int, default=2)
     cli.add_argument("--yolo-batch", type=int, default=8)
     cli.add_argument("--rcnn-batch", type=int, default=2)
+    cli.add_argument("--rcnn-size", type=int, help="Internal Mask R-CNN resize, keeping the evaluation grid.")
+    cli.add_argument("--rcnn-head-init", choices=["random", "coco-overlap"], default="random")
     cli.add_argument("--device", choices=["0", "cpu"], default="0")
     cli.add_argument("--pilot", action="store_true")
     cli.add_argument("--checkpoint", type=Path)
@@ -497,4 +545,10 @@ if __name__ == "__main__":
     options = cli.parse_args()
     if options.sampling != "native" and options.model not in YOLO_WEIGHTS:
         cli.error("--sampling is supported by the YOLO training path.")
+    if options.model in YOLO_WEIGHTS and (options.rcnn_size or options.rcnn_head_init != "random"):
+        cli.error("--rcnn-size and --rcnn-head-init apply to Mask R-CNN.")
+    if options.rcnn_size is not None and (options.rcnn_size < 64 or options.rcnn_size % 32):
+        cli.error("--rcnn-size must be a multiple of 32 and at least 64.")
+    if options.checkpoint and options.rcnn_head_init != "random":
+        cli.error("--rcnn-head-init applies to training, not a saved checkpoint.")
     run(options)

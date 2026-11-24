@@ -38,7 +38,8 @@ def score_masks(ground_truth, predictions, category_ids):
         scorer.accumulate()
         scorer.summarize()
 
-    scores = scorer.eval["precision"][:, :, :, 0, -1]
+    precision = scorer.eval["precision"]
+    scores = precision[:, :, :, 0, -1]
     counts = Counter(a["category_id"] for a in ground_truth["annotations"] if not a["iscrowd"])
     names = {c["id"]: c["name"] for c in ground_truth["categories"]}
 
@@ -55,6 +56,10 @@ def score_masks(ground_truth, predictions, category_ids):
         }
     return {
         "ap": mean_score(scores), "ap50": mean_score(scores[0]), "ap75": mean_score(scores[5]),
+        **{
+            f"ap_{label}": mean_score(precision[:, :, :, index, -1])
+            for index, label in enumerate(scorer.params.areaRngLbl) if label != "all"
+        },
         "images": len(ground_truth["images"]), "per_class": per_class,
     }
 
