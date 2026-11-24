@@ -4,13 +4,14 @@
 
 ## Abstrak
 
-Studi ini membandingkan YOLOv8n-seg, YOLO11n-seg, dan Mask R-CNN ResNet-50 FPN untuk segmentasi instance pada Panoptic Indoor Segmentation v5. Tiga model awal dilatih pada kondisi seluruh kelas dan tiga kelas sulit yang dipilih lewat validasi. Replikasi 20 epoch pada tiga seed memberi AP validasi 14,65% untuk Mask R-CNN v2 dan 12,03% untuk v1. Pada 359 foto publik, Mask AP checkpoint v2 terpilih mencapai 7,01%, dibanding 4,51% untuk baseline Mask R-CNN. Pada 37 kelas bersama, v2 mencapai 7,15% di test publik dan 7,23% pada 40 foto ponsel. Ketidaklengkapan sebagian anotasi membatasi interpretasi evaluasi eksternal.
+Studi ini membandingkan YOLOv8n-seg, YOLO11n-seg, dan Mask R-CNN ResNet-50 FPN pada Panoptic Indoor Segmentation v5. Tiga model awal dilatih pada kondisi seluruh kelas dan tiga kelas sulit yang dipilih lewat validasi. Replikasi 20 epoch pada tiga seed memberi Mask AP validasi 14,65% untuk Mask R-CNN v2 dan 12,03% untuk v1. Pada 359 foto publik, checkpoint v2 mencapai 7,01%, dibanding 4,51% untuk baseline Mask R-CNN. Transfer prediktor COCO dan input internal 800 px menaikkan Mask AP test publik menjadi 7,74% dan Mask AP foto ponsel dari 7,23% menjadi 7,44% pada 37 kelas bersama. Pemilihan konfigurasi memakai data validasi. Sebagian anotasi foto ponsel masih belum lengkap.
 
 ## Pertanyaan penelitian
 
 1. Bagaimana peringkat model one-stage dan two-stage pada evaluasi mask dengan grid, pemisahan data, dan metrik yang sama?
 2. Bagaimana perubahan dari pelatihan seluruh kelas ke pengkhususan `knife`, `light`, dan `spoon` memengaruhi AP pada ketiga kelas?
 3. Apakah keuntungan validasi Mask R-CNN v2 konsisten antar-seed, dan bagaimana hasil model berubah pada foto ponsel lokal?
+4. Bagaimana inisialisasi prediktor COCO dan ukuran input internal memengaruhi ketelitian Mask R-CNN v2?
 
 ## Data dan metode
 
@@ -78,6 +79,32 @@ Pada 103 mask kursi, AP bertambah dari 6,46% untuk baseline Mask R-CNN menjadi 1
 
 Pada pembagian foto HP, 12 gambar sulit dan 28 gambar lainnya memiliki 23 kelas bersama. AP Mask R-CNN baseline sebesar 3,81% pada kelompok sulit dan 4,90% pada kelompok lain. AP YOLOv8n 1,66% dan 2,24%. AP YOLO11n 2,66% dan 1,30%. Arah perubahan berbeda antar-model. Komposisi objek dan kondisi ruangan juga berbeda di antara kelompok. [Rincian per kelompok](output/test-pribadi/eval-v3/comparison.json)
 
+## Pengaruh inisialisasi COCO dan ukuran input
+
+Mask R-CNN v2 diuji pada empat kombinasi inisialisasi prediktor dan ukuran input internal. Pada kondisi transfer, baris prediktor dari bobot COCO dipertahankan untuk 33 kelas yang namanya cocok persis. Bobot upsampling mask bersama juga dipertahankan. Seluruh kondisi memakai backbone pralatih, seed 42 dan 97, serta 20 epoch di T4. Grid evaluasi 640 px tetap sama. Enam run baru dan dua kontrol dari replikasi sebelumnya masing-masing menyelesaikan 199 batch pada setiap epoch. [Rancangan dan aturan pemilihan](PROTOKOL_PERBAIKAN.md) · [Tabel delapan run](output/improvement/validation.csv) · [Log training](output/improvement/log-runs)
+
+| Inisialisasi dan ukuran | Seed 42 | Seed 97 | Rata-rata AP | AP objek kecil |
+|---|---:|---:|---:|---:|
+| Acak, 640 px | 15,39% | 14,45% | 14,92% | 3,13% |
+| Transfer COCO, 640 px | 16,52% | 14,01% | 15,27% | **3,51%** |
+| Acak, 800 px | 13,56% | 13,18% | 13,37% | 2,91% |
+| Transfer COCO, 800 px | 15,12% | 15,59% | **15,36%** | 2,87% |
+
+Transfer COCO dengan 800 px menghasilkan rata-rata Mask AP50-95 validasi tertinggi. Selisih terhadap kontrol adalah +0,44 poin, dengan perubahan −0,27 pada seed 42 dan +1,15 pada seed 97. Rata-rata durasi training berubah dari 22,25 menjadi 29,20 menit. AP objek kecil dan AP tiga target masing-masing turun 0,25 dan 1,74 poin. Hasil dua seed ini menunjukkan bahwa manfaatnya bergantung pada metrik. [Pemilihan checkpoint](output/improvement/selection.json)
+
+![Gambar 3. Hasil validasi per seed dengan rata-rata tiap kondisi. Garis putus-putus menunjukkan rata-rata kontrol.](output/improvement/validasi-perbaikan.png)
+
+| Mask AP50-95 | Kontrol 640 px | Transfer 800 px | Selisih |
+|---|---:|---:|---:|
+| Test publik, 69 kelas | 7,01% | 7,74% | +0,74 poin |
+| Test publik, tiga kelas NRP 8 | 1,57% | 2,29% | +0,71 poin |
+| Test publik, 37 kelas bersama | 7,15% | 8,04% | +0,89 poin |
+| Foto HP, 37 kelas bersama | 7,23% | 7,44% | +0,21 poin |
+
+Kedua model memakai seed 97, evaluator COCO, dan mask acuan yang sama. Selisih dihitung dari skor sebelum pembulatan. [Test publik](output/improvement/public-test.json) · [Test foto HP](output/improvement/phone-test.json)
+
+AP objek kecil di test publik naik dari 2,45% menjadi 2,72%. Pada 40 foto HP, AP50 turun dari 14,48% menjadi 11,64% dan AP75 naik dari 6,89% menjadi 8,23% pada 37 kelas bersama. AP objek kecil pada evaluasi 39 kelas foto HP naik dari 1,45% menjadi 3,51%. Tiga foto mendapat koreksi mask terpisah di Roboflow setelah snapshot v3 dibekukan. [Catatan koreksi](LOGBOOK.md)
+
 ## Lima contoh kegagalan
 
 Angka adalah IoU mask pada instance yang ditunjukkan. Kelas yang disebutkan untuk suatu prediksi berasal dari mask yang disimpan di atas ambang evaluator. Setiap gambar memperlihatkan anotasi di kiri, lalu prediksi YOLOv8n, YOLO11n, dan Mask R-CNN v1. Kelima foto memiliki gambar dan mask yang identik pada snapshot v2 dan v3. [Verifikasi revisi](output/test-pribadi/revisi-v2-v3.json)
@@ -98,19 +125,19 @@ Gamma 0,65 mencerahkan bagian citra tanpa mengubah padding atau checkpoint. Pada
 
 ## Keterbatasan dan keterlacakan
 
-Sejumlah mask lama menggabungkan beberapa instance berdekatan atau hanya melabeli objek dominan. Instance yang terlewat dapat membuat prediksi yang benar dihitung sebagai false positive. Satu atau dua contoh kelas langka memberi estimasi AP yang sangat sensitif terhadap satu prediksi. Foto berasal dari satu koleksi dan sampel beberapa ruangan mungkin berkorelasi. Replikasi tiga seed menilai variasi training pada satu split publik. Studi ini tidak memiliki estimasi ketidakpastian lintas ruangan atau audit anotator kedua.
+Sejumlah mask lama menggabungkan beberapa instance berdekatan atau hanya melabeli objek dominan. Instance yang terlewat dapat membuat prediksi yang benar dihitung sebagai false positive. Sembilan kelas yang mempunyai anotasi pada test publik tidak memiliki contoh pada train. Satu atau dua contoh kelas langka membuat estimasi AP sensitif terhadap satu prediksi. Foto berasal dari satu koleksi dan sampel beberapa ruangan mungkin berkorelasi. Putaran transfer dan resolusi bersifat eksploratif karena test publik pernah diperiksa untuk diagnosis dan perbandingan test baru memakai satu seed. Ukuran internal 800 px memperbesar input jaringan dari praproses 640 px. Riset ini belum mengukur ketidakpastian lintas ruangan atau kesepakatan antaranotator.
 
 Checkpoint, kurva training, prediksi COCO, metadata EXIF, dan lembar audit disimpan pada PC. Foto serta checkpoint berada di direktori yang dikecualikan dari Git. Catatan menyertakan konfigurasi dan kegagalan yang memerlukan pemulihan. Draf ini disiapkan untuk penilaian studi. Deklarasi penggunaan Codex dan Smart Select tersedia terpisah. [Deklarasi AI](DEKLARASI_AI.md) · [Logbook](LOGBOOK.md)
 
 ## Kesimpulan
 
-Di bawah protokol ini, Mask R-CNN v1 memimpin tiga baseline pada kedua domain. Replikasi v2 meningkatkan AP validasi pada ketiga seed dan checkpoint terpilih memperoleh AP lebih tinggi pada kedua test set untuk kelas bersama. Nilai absolut beberapa persen dan lima contoh visual menunjukkan model masih kerap salah kelas atau menghasilkan batas mask yang kurang tepat. Pengujian dengan gamma memperlihatkan respons yang berbeda menurut kelas. Kesimpulan tentang transfer ke ruangan lain memerlukan anotasi yang lebih lengkap dan sampel lintas lokasi yang independen.
+Mask R-CNN v1 memimpin tiga baseline pada kedua domain. Replikasi v2 meningkatkan AP validasi pada ketiga seed. Putaran transfer COCO dan 800 px memberi tambahan 0,74 poin Mask AP pada test publik dan 0,21 poin pada kelas bersama di foto ponsel. AP pada tiga kelas target masih rendah dan AP50 foto ponsel turun. Lima contoh visual mendokumentasikan kesalahan kelas dan batas mask. Pengukuran transfer ke ruangan lain memerlukan sampel lintas lokasi dan anotasi yang lebih lengkap.
 
 ## Bukti audit dan demo
 
 Baris pertama memperlihatkan kursi dan meja yang dipisahkan. Baris kedua memperlihatkan penambahan mask untuk objek utama pada foto yang sebelumnya kosong. Skrip demo menghasilkan 16 mask pada satu foto dengan ambang 0,15. Argumen threshold dapat diubah saat memakai foto baru. [Foto demo lokal](output/demo/hasil-ujicoba.png) · [Skrip demo](demo_segmentasi.py)
 
-![Gambar 3. Foto asli, overlay lama, dan overlay setelah perbaikan anotasi per objek.](output/test-pribadi/perbaikan-mask.jpg)
+![Gambar 4. Foto asli, overlay lama, dan overlay setelah perbaikan anotasi per objek.](output/test-pribadi/perbaikan-mask.jpg)
 
 ## Referensi metode
 

@@ -67,3 +67,9 @@ Sumber dataset: https://universe.roboflow.com/panopticindoor/panoptic-indoor-seg
 - Pada 1000865805, ganti satu mask kursi gabungan dengan tiga mask kursi, termasuk satu kursi terpotong di kanan.
 - Pada 1000865797, tambahkan empat mask kursi dan satu mask jam. Setiap objek dipilih dengan satu area Smart Select yang ditinjau di editor, lalu disimpan menggunakan kelas yang sudah ada.
 - Revisi terlihat kembali pada job setelah halaman dimuat ulang. Angka penelitian foto HP yang sudah dibukukan merujuk pada ekspor v3. Ekspor baru belum terverifikasi pada pukul 21:40 WIB.
+
+## 2026-11-24 23:12 WIB · Evaluasi checkpoint transfer COCO
+
+- Enam run Colab baru dan dua kontrol yang diarsipkan masing-masing memiliki catatan 20 epoch lengkap. Rata-rata Mask AP validasi pada acak 640, transfer 640, acak 800, dan transfer 800 berturut-turut 14,92%, 15,27%, 13,37%, dan 15,36%. Rancangan yang sudah dikunci memilih transfer 800 dan checkpoint seed 97. AP objek kecil di validasi tertinggi pada transfer 640. [Tabel run](output/improvement/validation.csv)
+- Uji publik selesai pada T4 setelah transfer artefak pertama terputus. Percobaan yang berhasil mengirim arsip dalam bagian 3 MiB dan menyegarkan koneksi runtime. Perhitungan ulang prediksi COCO untuk 359 gambar mencocokkan AP model lama 7,01% dan checkpoint terpilih 7,74%. AP tiga kelas NRP 8 berubah dari 1,57% menjadi 2,29%. [Rincian evaluasi publik](output/improvement/public-test.json)
+- Inferensi lokal pada 40 foto dan 619 mask yang sama menghasilkan AP 7,23% dan 7,44% pada 37 kelas bersama. AP objek kecil pada foto HP naik dari 1,45% ke 3,51%. Evaluasi ini memakai snapshot v3. Koreksi terbaru di Roboflow tercatat pada entri pukul 21:40 WIB. [Rincian evaluasi foto HP](output/improvement/phone-test.json)

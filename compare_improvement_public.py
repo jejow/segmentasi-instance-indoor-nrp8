@@ -60,7 +60,7 @@ def compare(dataset, control, evaluated, selection_file, output):
     output.parent.mkdir(parents=True, exist_ok=True)
     write_json(output, result)
     for key, change in paired.items():
-        print(f"{key}: {before['scores'][key]:.2%} → {after['scores'][key]:.2%} ({100*change:+.2f} pp)")
+        print(f"{key}: {before['scores'][key]:.2%} -> {after['scores'][key]:.2%} ({100*change:+.2f} pp)")
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ from train import category_table, predict_maskrcnn
 COLORS = ("#2ca48b", "#e79153", "#528ad5", "#bd6caa", "#b6a12a", "#9a7be3")
 
 
-def infer(photo, checkpoint, taxonomy, variant, threshold, output, device):
+def infer(photo, checkpoint, taxonomy, variant, threshold, output, device, rcnn_size=None):
     manifest = load_json(taxonomy)
     classes = category_table(manifest, None)
     size = manifest["size"]
@@ -26,7 +26,7 @@ def infer(photo, checkpoint, taxonomy, variant, threshold, output, device):
         name = "test.jpg"
         pixels.save(directory / name, quality=89, optimize=True)
         records = {"images": [{"id": 1, "file_name": name}]}
-        args = argparse.Namespace(model=variant, device=device)
+        args = argparse.Namespace(model=variant, device=device, rcnn_size=rcnn_size)
         predictions = [
             row for row in predict_maskrcnn(args, directory, records, checkpoint, classes, size)
             if row["score"] >= threshold
@@ -58,12 +58,15 @@ if __name__ == "__main__":
                         default=Path("output/research/maskrcnn-v2-97/checkpoint.pt"))
     parser.add_argument("--taxonomy", type=Path, default=Path("data/panoptic-indoor-v5-640.json"))
     parser.add_argument("--variant", choices=["maskrcnn", "maskrcnn-v2"], default="maskrcnn-v2")
+    parser.add_argument("--rcnn-size", type=int, help="Internal resize used to evaluate the checkpoint.")
     parser.add_argument("--threshold", type=float, default=.15)
     parser.add_argument("--device", choices=["cpu", "0"], default="cpu")
     parser.add_argument("--output", type=Path, default=Path("output/demo/mask.png"))
     options = parser.parse_args()
     if not 0.005 <= options.threshold <= 1:
         parser.error("Use a threshold between 0.005 and 1.")
+    if options.rcnn_size is not None and (options.rcnn_size < 64 or options.rcnn_size % 32):
+        parser.error("--rcnn-size must be a multiple of 32 and at least 64.")
     torch.set_num_threads(3)
     infer(options.photo, options.checkpoint, options.taxonomy, options.variant,
-          options.threshold, options.output, options.device)
+          options.threshold, options.output, options.device, options.rcnn_size)

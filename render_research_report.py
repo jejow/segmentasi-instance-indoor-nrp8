@@ -12,7 +12,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
-    Image, KeepTogether, LongTable, Paragraph, SimpleDocTemplate,
+    Image, KeepTogether, LongTable, PageBreak, Paragraph, SimpleDocTemplate,
     Spacer, TableStyle,
 )
 
@@ -120,6 +120,8 @@ def render(source, destination):
             story.append(Paragraph(markup(line), typography["meta"]))
         elif line.startswith("## "):
             section = line[3:]
+            if section == "Bukti audit dan demo":
+                story.append(PageBreak())
             story.append(Paragraph(markup(section), typography["head"]))
         elif line.startswith("!["):
             match = LINK.search(line)
@@ -146,7 +148,7 @@ def render(source, destination):
                     caption, path = match.groups()
                     story.append(KeepTogether([
                         Paragraph(markup(caption), typography["case"]),
-                        figure(source.parent / path, max_height=156),
+                        figure(source.parent / path, max_height=142),
                         Spacer(1, 5), Paragraph(markup(evidence), typography["body"]),
                     ]))
             else:

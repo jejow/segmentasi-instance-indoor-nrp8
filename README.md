@@ -25,6 +25,8 @@ Auditi ekspor COCO job Roboflow dengan `audit_private_test.py <ekspor.zip>`. Jal
 
 Jalankan `python demo_segmentasi.py <foto-baru.jpg> --threshold 0.15` dari environment model. Ganti threshold pada argumen untuk memperlihatkan perubahan jumlah mask. Checkpoint bawaan adalah Mask R-CNN v2 seed 97. AP per kelas berasal dari evaluasi berground truth di `per-class.csv`. Foto demo hanya perlu satu gambar baru.
 
+Untuk checkpoint transfer COCO 800 px, gunakan `python demo_segmentasi.py foto-baru.jpg --checkpoint output/improvement/coco-800-97-retry1/checkpoint.pt --rcnn-size 800 --threshold 0.15`. Hasil evaluasi dan pembanding tercatat di [laporan](LAPORAN_RISET.md).
+
 ## Artefak
 
 Setiap run utama menghasilkan checkpoint, log per epoch `results.csv`, prediksi COCO, ringkasan AP dan catatan waktu GPU. Fase pilot hanya memakai data train dan validasi untuk menetapkan kelas sulit. File ZIP dataset dan checkpoint disimpan di luar riwayat Git.
