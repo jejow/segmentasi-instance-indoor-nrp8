@@ -18,3 +18,9 @@ Target 32 epoch dan 640 sampel per epoch untuk enam run. Gunakan checkpoint epoc
 - Dari ekspor asli, 16/397 foto train punya sisi terpanjang lebih dari 640 piksel. Upscale global 960 akan memperbesar sebagian besar gambar tanpa data piksel baru. Putaran ini memakai kanvas 640 agar compute diprioritaskan ke sampling dan target mask.
 - Ultralytics 8.3.230 menyelaraskan raster mask target ke ukuran prototipe mask pada loss. Mask_ratio 2 hanya mengubah rasterisasi awal. Sumber: https://github.com/ultralytics/ultralytics/blob/v8.3.230/ultralytics/utils/loss.py
 - Rujukan prosedur penelusuran: Kassis, Agarwal, He, Patel, dan Brueckner (2026), Scientific Agent Skills, arXiv:2609.00065. https://arxiv.org/abs/2609.00065
+
+### Audit rasterisasi awal
+
+Simulasi OpenCV pada 4.479 poligon train di kanvas 640 menunjukkan satu mask kosong pada rasterisasi langsung 160 px. Pada rasterisasi 320 px yang diproyeksikan ke grid prototipe 160 px, seluruh mask pada simulasi memiliki piksel positif. Semua poligon knife (12), light (41), dan spoon (35) tetap memiliki piksel positif pada kedua cara. Perubahan piksel terlihat pada 4.453 poligon. Audit ini memakai poligon statis sebelum transformasi dataloader.
+
+- [Konversi polygon2mask dalam Ultralytics 8.3.230](https://github.com/ultralytics/ultralytics/blob/v8.3.230/ultralytics/data/utils.py)
