@@ -6,11 +6,20 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $result = Get-Content -LiteralPath (Join-Path $PSScriptRoot $SelectionFile) -Raw | ConvertFrom-Json
+if ($null -ne $result.selection.ready_for_public_test -and !$result.selection.ready_for_public_test) {
+    throw 'Hasil validasi belum memilih checkpoint baru untuk test publik.'
+}
 $model = $result.selection.variant
 $selected = $result.selection.checkpoint
 $chosen = $result.runs | Where-Object run -EQ $selected | Select-Object -First 1
 if (!$chosen) { throw 'Tidak ada checkpoint uji yang cocok dengan hasil pemilihan validasi.' }
 $checkpoint = ((Join-Path (Split-Path $SelectionFile -Parent) "$selected/checkpoint.pt") -replace '\\','/')
+if ($result.selection.checkpoint_sha256) {
+    $receivedHash = (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $checkpoint) -Algorithm SHA256).Hash
+    if ($receivedHash -ne $result.selection.checkpoint_sha256) {
+        throw 'Hash checkpoint berbeda dari hasil pemilihan validasi.'
+    }
+}
 $testDataset = 'output/tuning/test-v5.zip'
 $stablePython = Join-Path $env:LOCALAPPDATA 'FP-K2-Training/segmentasi-nrp8-venv/Scripts/python.exe'
 $backend = 'C:/Users/junxi/OneDrive/Documents/Semester 5/Kompt Biomeds/FP/fp_rsna/eksperimen_model/03_colab/colab_project.py'

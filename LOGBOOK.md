@@ -54,3 +54,16 @@ Sumber dataset: https://universe.roboflow.com/panopticindoor/panoptic-indoor-seg
 - Empat foto redup diuji ulang dengan gamma 0,65 dan checkpoint Mask R-CNN baseline yang sama. Mask AP pada 58 mask berubah dari 3,41% menjadi 4,31%. Uji ini berguna untuk memeriksa sensitivitas cahaya pada sampel kecil.
 - Evaluasi v2 seed 97 pada 359 foto publik selesai di Colab 09. Percobaan ulang memakai transfer dalam bagian kecil dan memperbarui koneksi sesi. Arsip test lolos pemeriksaan CRC dan hash split sumber cocok. AP semua 69 kelas yang memiliki anotasi adalah 7,01%. Pada 37 kelas bersama, skor publik dan foto HP adalah 7,15% dan 7,23%.
 - Bukti data dan hasil tersedia di direktori output/test-pribadi dan output/research. Ringkasan serta CSV loss asli keenam run disalin ke [log run](output/research/log-runs). Foto, metadata, checkpoint, dan prediksi tidak dimasukkan ke Git.
+
+## 2026-11-24 21:18 WIB · Uji resolusi dan inisialisasi Mask R-CNN v2
+
+- Dari 5.344 mask acuan test publik, 42,2% tidak mempunyai prediksi dengan mask IoU minimal 0,50 dan 17,8% hanya mempunyai prediksi bertumpang tindih dari kelas lain. Sebanyak 14,1% mask kecil berpasangan dengan prediksi sekelas pada ambang itu, dibandingkan dengan 60,4% mask besar.
+- Kunci rancangan faktorial dengan seed 42 dan 97 sebelum meluncurkan training. Bandingkan inisialisasi acak dengan transfer prediktor COCO pada 33 kelas yang namanya persis sama. Ukuran internal 640 dan 800 px memakai kanvas acuan 640 px yang sama. Kontrol 640 px tersedia dari replikasi sebelumnya. [Protokol uji](PROTOKOL_PERBAIKAN.md)
+- Paket Colab berisi 397 gambar train dan 166 gambar validasi dari split publik yang sama. Pemeriksaan hash anggota arsip mencocokkan kedua split dengan paket v5. Test publik dan foto HP menjadi data untuk pengukuran terpisah dari pemilihan konfigurasi.
+
+## 2026-11-24 21:40 WIB · Koreksi instans pada tiga foto kelas
+
+- Pada 1000865803, ganti satu mask kursi gabungan dengan lima mask kursi yang dapat dibedakan. Potongan kayu di tepi kiri tidak ditetapkan sebagai instans terpisah karena identitasnya ambigu.
+- Pada 1000865805, ganti satu mask kursi gabungan dengan tiga mask kursi, termasuk satu kursi terpotong di kanan.
+- Pada 1000865797, tambahkan empat mask kursi dan satu mask jam. Setiap objek dipilih dengan satu area Smart Select yang ditinjau di editor, lalu disimpan menggunakan kelas yang sudah ada.
+- Revisi terlihat kembali pada job setelah halaman dimuat ulang. Angka penelitian foto HP yang sudah dibukukan merujuk pada ekspor v3. Ekspor baru belum terverifikasi pada pukul 21:40 WIB.
