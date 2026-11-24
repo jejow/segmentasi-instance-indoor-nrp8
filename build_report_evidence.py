@@ -318,7 +318,7 @@ def render_charts(data, destination):
 
     ordering = ("random-640", "coco-640", "random-800", "coco-800")
     labels = ("Acak\n640", "COCO\n640", "Acak\n800", "COCO\n800")
-    fig, axes = plt.subplots(1, 2, figsize=(7.25, 2.34), layout="constrained")
+    fig, axes = plt.subplots(1, 2, figsize=(7.25, 2.55), layout="constrained")
     for ax, field, title in zip(axes, ("ap_pct", "small_pct"), ("Seluruh kelas", "Objek kecil"), strict=True):
         for i, condition in enumerate(ordering):
             points = sorted((r for r in data["validation"] if r["condition"] == condition),
@@ -333,7 +333,8 @@ def render_charts(data, destination):
         ax.set_ylabel("Mask AP validasi (%)")
         ax.margins(y=.16)
         ax.grid(axis="y")
-    axes[0].legend(frameon=False, loc="lower center", bbox_to_anchor=(.5, -.31), ncols=3, fontsize=8)
+    handles, legend = axes[0].get_legend_handles_labels()
+    fig.legend(handles, legend, frameon=False, loc="outside lower center", ncols=3, fontsize=8)
     save(fig, "validasi-maskrcnn.png")
 
     fig, ax = plt.subplots(figsize=(7.25, 1.86), layout="constrained")
