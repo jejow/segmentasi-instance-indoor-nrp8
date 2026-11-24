@@ -38,3 +38,10 @@ Sumber dataset: https://universe.roboflow.com/panopticindoor/panoptic-indoor-seg
 - Untuk knife, light, dan spoon, AP kondisi penuh vs tiga kelas adalah 0,30% dan 0,00% pada YOLOv8n, 0,17% dan 0,00% pada YOLO11n, serta 1,15% dan 0,56% pada Mask R-CNN. Hanya 43 dari 397 gambar train memiliki satu atau lebih kelas target. Pada dua YOLO kondisi tiga kelas, prediksi mask tidak mencapai ambang 0,005.
 - Checkpoint Mask R-CNN profil 06 dipulihkan secara utuh dan dievaluasi lewat profil 03. Run tiga kelas profil 09 menyelesaikan semua epoch dengan satu batch tanpa RoI yang memakai supervisi RPN dan satu forward yang diulang dengan FP32. Log kegagalan awal dipertahankan sebagai bukti proses.
 - Sumber uji pribadi yang tersedia lokal masih berupa ekspor awal dengan mask pada tiga gambar. AP foto pribadi dan analisis domain shift menunggu ekspor hasil audit.
+
+## 2026-11-24 16:11:12 +07:00 · Evaluasi lanjutan selesai
+
+- Enam run YOLOv8n-seg selesai 32 epoch. Pemenang validasi semua kelas ialah repeat factor + mask ratio 2 dengan AP 9,98%. Kontrol seragam memperoleh 9,65% dan AP tiga target tertinggi 1,56%.
+- Setelah pemilihan dari validasi, tiga checkpoint dievaluasi pada 359 foto test resmi. AP semua kelas repeat factor + mask ratio 2 adalah 2,15%, kontrol seragam 2,22%, dan YOLOv8n baseline awal 2,26%. AP tiga target di test adalah 0,51%, 0,35%, dan 0,30%. Mask R-CNN baseline masih tertinggi dengan AP semua kelas 4,51% dan AP tiga target 1,15%.
+- Kedua run yang dilatih hanya pada tiga kelas mencatat AP validasi 0%. Tie diputuskan untuk kontrol seragam, yang mendapat AP tiga target 0,23% pada test resmi.
+- Arsip model, prediksi, log, tabel, dan grafik terverifikasi dan disimpan di output/tuning.
