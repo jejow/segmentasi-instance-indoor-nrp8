@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from zipfile import ZipFile
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps
 from pycocotools import mask as coco_mask
 
 from audit_private_test import PHOTO
@@ -35,17 +35,27 @@ def match(annotation, predictions, names):
     return stats, predictions[chosen] if overlaps[chosen] else None
 
 
-def overlay(image, annotation, color):
+def overlay(image, annotation, color, monochrome=False):
+    if monochrome:
+        image = ImageOps.grayscale(image)
     if annotation is None:
         return image
     binary = Image.fromarray(coco_mask.decode(annotation["segmentation"])).convert("L")
-    alpha = binary.point(lambda val: 105 if val else 0)
     layer = image.copy()
-    layer.paste(color, (0, 0), alpha)
+    if monochrome:
+        solid = binary.point(lambda value: 255 if value else 0)
+        outer = ImageChops.subtract(solid.filter(ImageFilter.MaxFilter(7)), solid)
+        inner = ImageChops.subtract(solid, solid.filter(ImageFilter.MinFilter(7)))
+        layer.paste(230, (0, 0), solid.point(lambda value: 46 if value else 0))
+        layer.paste(14, (0, 0), outer)
+        layer.paste(250, (0, 0), inner)
+    else:
+        alpha = binary.point(lambda val: 105 if val else 0)
+        layer.paste(color, (0, 0), alpha)
     return layer
 
 
-def inspect(dataset, model_archives, output, requested, render_ids):
+def inspect(dataset, model_archives, output, requested, render_ids, monochrome=False):
     outputs = {}
     dataset_sha256 = hash_file(dataset)
     for model in model_archives:
@@ -80,24 +90,26 @@ def inspect(dataset, model_archives, output, requested, render_ids):
                 })
             if annotation["id"] in render_ids:
                 pixels = Image.open(BytesIO(archive.read(f"private/images/{file['file_name']}"))).convert("RGB")
-                panels = [("Anotasi COCO", label, overlay(pixels, annotation, "#10a68d"))]
+                panels = [("Anotasi COCO", label, overlay(pixels, annotation, "#10a68d", monochrome))]
                 for model, row in models.items():
                     model_label = row.get("shown_class") or "tanpa overlap"
                     panels.append((
                         model, f"{model_label} | IoU {row.get('shown_iou', 0):.2f}",
-                        overlay(pixels, examples[model], "#eb6e38"),
+                        overlay(pixels, examples[model], "#eb6e38", monochrome),
                     ))
                 width, height = 300, 398
-                canvas = Image.new("RGB", (width * len(panels), height), "#f4f7fa")
+                canvas = Image.new("L" if monochrome else "RGB", (width * len(panels), height),
+                                   248 if monochrome else "#f4f7fa")
                 draw = ImageDraw.Draw(canvas)
                 heading = ImageFont.load_default(size=20)
                 caption_font = ImageFont.load_default(size=16)
+                ink = 24 if monochrome else "#172c45"
                 draw.text((10, 10), f"{photo} | {label} | instance {annotation['id']}",
-                          fill="#172c45", font=heading)
+                          fill=ink, font=heading)
                 for i, (name, caption, panel) in enumerate(panels):
                     canvas.paste(panel.resize((width, width), Image.Resampling.LANCZOS), (i * width, 41))
-                    draw.text((i * width + 9, 348), name, fill="#172c45", font=heading)
-                    draw.text((i * width + 9, 374), caption, fill="#172c45", font=caption_font)
+                    draw.text((i * width + 9, 348), name, fill=ink, font=heading)
+                    draw.text((i * width + 9, 374), caption, fill=ink, font=caption_font)
                 canvas.save(output / f"{photo}-{annotation['id']}.jpg", quality=92)
     write_json(output / "candidates.json", candidates)
     print(f"{len(candidates)} kandidat IoU kelas yang sama < 0,50 pada minimal satu model.")
@@ -110,6 +122,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--photos", type=Path)
     parser.add_argument("--render", nargs="*", type=int, default=[])
+    parser.add_argument("--monochrome", action="store_true")
     options = parser.parse_args()
     photos = set(json.loads(options.photos.read_text(encoding="utf-8"))) if options.photos else set()
-    inspect(options.dataset, options.models, options.output, photos, set(options.render))
+    inspect(options.dataset, options.models, options.output, photos, set(options.render), options.monochrome)

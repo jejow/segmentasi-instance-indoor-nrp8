@@ -1,0 +1,9 @@
+condition,size,masks,below_iou,other_class_only,correct_class
+random-640,all,5344,2254,952,2138
+random-640,small,1201,906,126,169
+random-640,medium,2203,999,406,798
+random-640,large,1940,349,420,1171
+coco-800,all,5344,2223,916,2205
+coco-800,small,1201,913,125,163
+coco-800,medium,2203,955,403,845
+coco-800,large,1940,355,388,1197

@@ -11,14 +11,16 @@ from PIL import Image
 import torch
 
 from audit_private_test import PHOTO
+from inspect_failures import match
 from metrics import score_masks, write_json
+from prepare_dataset import hash_file
 from train import category_table, predict_maskrcnn
 
 
 DARK = {"1000865809", "1000865813", "1000865828", "1000865829"}
 
 
-def experiment(dataset, trained_run, baseline_run, metadata, output, gamma):
+def experiment(dataset, trained_run, baseline_run, metadata, output, gamma, inspect_annotations=()):
     original_sizes = {
         Path(row["file"]).stem: (row["width"], row["height"])
         for row in json.loads(metadata.read_text(encoding="utf-8"))
@@ -53,7 +55,9 @@ def experiment(dataset, trained_run, baseline_run, metadata, output, gamma):
             baseline = json.loads(evaluation.read("summary.json"))
             summary = json.loads(training.read("summary.json"))
             if any(baseline[k] != summary[k] for k in ("seed", "class_names", "model", "input_size")):
-                raise ValueError("Pilot and control do not use the same checkpoint settings.")
+                raise ValueError("Training and control do not use the same checkpoint settings.")
+            if baseline["dataset_sha256"] != hash_file(dataset):
+                raise ValueError("The control predictions use a different snapshot.")
             with training.open("checkpoint.pt") as weights, checkpoint.open("wb") as sink:
                 copyfileobj(weights, sink)
             control = [
@@ -70,6 +74,24 @@ def experiment(dataset, trained_run, baseline_run, metadata, output, gamma):
             "control": score_masks(gt, control, categories),
             "brightened": score_masks(gt, brightened, categories),
         }
+        if inspect_annotations:
+            requested = set(inspect_annotations)
+            annotations = {row["id"]: row for row in gt["annotations"] if row["id"] in requested}
+            if annotations.keys() != requested:
+                raise ValueError(f"Requested annotations outside the low-light subset: {requested - annotations.keys()}.")
+            names = {row["id"]: row["name"] for row in gt["categories"]}
+            report["examples"] = []
+            for key in sorted(annotations):
+                annotation = annotations[key]
+                image_id = annotation["image_id"]
+                report["examples"].append({
+                    "annotation_id": key, "photo": used[image_id][1],
+                    "class": names[annotation["category_id"]],
+                    **{
+                        label: match(annotation, [r for r in rows if r["image_id"] == image_id], names)[0]
+                        for label, rows in (("control", control), ("brightened", brightened))
+                    },
+                })
         write_json(output, report)
         print(f"Gamma {gamma}: AP {report['control']['ap']:.4f} -> {report['brightened']['ap']:.4f}", flush=True)
 
@@ -82,9 +104,10 @@ if __name__ == "__main__":
     parser.add_argument("metadata", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--gamma", type=float, default=0.65)
+    parser.add_argument("--inspect-annotations", nargs="+", type=int, default=[])
     options = parser.parse_args()
     if options.gamma <= 0:
         parser.error("Gamma must be positive.")
     torch.set_num_threads(4)
     experiment(options.dataset, options.trained_run, options.baseline_run,
-               options.metadata, options.output, options.gamma)
+               options.metadata, options.output, options.gamma, options.inspect_annotations)

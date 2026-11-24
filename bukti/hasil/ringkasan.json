@@ -1,0 +1,573 @@
+{
+  "dataset_splits": {
+    "test": {
+      "images": 359,
+      "masks": 5344,
+      "classes": 69
+    },
+    "train": {
+      "images": 397,
+      "masks": 4479,
+      "classes": 65
+    },
+    "valid": {
+      "images": 166,
+      "masks": 2022,
+      "classes": 58
+    },
+    "private": {
+      "images": 40,
+      "masks": 619,
+      "classes": 39
+    }
+  },
+  "nrp8": [
+    {
+      "model": "yolov8n",
+      "condition": "full",
+      "classes": 74,
+      "public_images": 359,
+      "phone_images": 40,
+      "public_native_pct": 2.2571953977177546,
+      "public_targets_pct": 0.2965963083956363,
+      "phone_targets_pct": 0.6431927209800568,
+      "training_minutes": 3.8582672210666664
+    },
+    {
+      "model": "yolo11n",
+      "condition": "full",
+      "classes": 74,
+      "public_images": 359,
+      "phone_images": 40,
+      "public_native_pct": 1.70966778176943,
+      "public_targets_pct": 0.17116281770985292,
+      "phone_targets_pct": 0.09144352584946644,
+      "training_minutes": 3.943038043816667
+    },
+    {
+      "model": "maskrcnn",
+      "condition": "full",
+      "classes": 74,
+      "public_images": 359,
+      "phone_images": 40,
+      "public_native_pct": 4.511678987430458,
+      "public_targets_pct": 1.1524411573959166,
+      "phone_targets_pct": 0.16357622604365699,
+      "training_minutes": 16.3868
+    },
+    {
+      "model": "yolov8n",
+      "condition": "three",
+      "classes": 3,
+      "public_images": 359,
+      "phone_images": 40,
+      "public_native_pct": "",
+      "public_targets_pct": 0.0,
+      "phone_targets_pct": 0.0,
+      "training_minutes": 2.640573972016666
+    },
+    {
+      "model": "yolo11n",
+      "condition": "three",
+      "classes": 3,
+      "public_images": 359,
+      "phone_images": 40,
+      "public_native_pct": "",
+      "public_targets_pct": 0.0,
+      "phone_targets_pct": 0.0,
+      "training_minutes": 2.858167495000001
+    },
+    {
+      "model": "maskrcnn",
+      "condition": "three",
+      "classes": 3,
+      "public_images": 359,
+      "phone_images": 40,
+      "public_native_pct": "",
+      "public_targets_pct": 0.5556170651543714,
+      "phone_targets_pct": 0.5082467634361288,
+      "training_minutes": 11.8875409085
+    }
+  ],
+  "domain": [
+    {
+      "model": "YOLOv8n-seg",
+      "classes": 37,
+      "public_pct": 2.570821075322636,
+      "phone_pct": 2.507797708479896
+    },
+    {
+      "model": "YOLO11n-seg",
+      "classes": 37,
+      "public_pct": 2.067165224291107,
+      "phone_pct": 0.9839750840368416
+    },
+    {
+      "model": "Mask R-CNN",
+      "classes": 37,
+      "public_pct": 4.761908783369673,
+      "phone_pct": 4.149765016038213
+    },
+    {
+      "model": "Mask R-CNN v2",
+      "classes": 37,
+      "public_pct": 7.151476191943225,
+      "phone_pct": 7.233084581627493
+    },
+    {
+      "model": "Mask R-CNN v2, COCO 800",
+      "classes": 37,
+      "public_pct": 8.04207065860376,
+      "phone_pct": 7.443696091043039
+    }
+  ],
+  "replay": [
+    {
+      "model": "maskrcnn",
+      "seed": 42,
+      "ap_pct": 11.764906949867864,
+      "minutes": 19.413225866466668
+    },
+    {
+      "model": "maskrcnn",
+      "seed": 97,
+      "ap_pct": 12.667962201557062,
+      "minutes": 19.705139546266665
+    },
+    {
+      "model": "maskrcnn",
+      "seed": 123,
+      "ap_pct": 11.654312393717001,
+      "minutes": 18.837126178266665
+    },
+    {
+      "model": "maskrcnn-v2",
+      "seed": 42,
+      "ap_pct": 15.388113366234302,
+      "minutes": 22.2419710639
+    },
+    {
+      "model": "maskrcnn-v2",
+      "seed": 97,
+      "ap_pct": 14.44618848114874,
+      "minutes": 22.260108100733337
+    },
+    {
+      "model": "maskrcnn-v2",
+      "seed": 123,
+      "ap_pct": 14.118690477453816,
+      "minutes": 22.616752234066666
+    }
+  ],
+  "validation": [
+    {
+      "run": "random-640-42",
+      "condition": "random-640",
+      "seed": 42,
+      "ap_pct": 15.388113366234302,
+      "small_pct": 3.192938922213901,
+      "targets_pct": 2.1723221385908245
+    },
+    {
+      "run": "random-640-97",
+      "condition": "random-640",
+      "seed": 97,
+      "ap_pct": 14.44618848114874,
+      "small_pct": 3.058763536668665,
+      "targets_pct": 3.822963650018072
+    },
+    {
+      "run": "coco-640-42-retry1",
+      "condition": "coco-640",
+      "seed": 42,
+      "ap_pct": 16.52272074309949,
+      "small_pct": 3.898824649071352,
+      "targets_pct": 0.8663692375877126
+    },
+    {
+      "run": "coco-640-97-retry1",
+      "condition": "coco-640",
+      "seed": 97,
+      "ap_pct": 14.012143544077249,
+      "small_pct": 3.11350441434543,
+      "targets_pct": 2.0959170141035695
+    },
+    {
+      "run": "random-800-42-retry2",
+      "condition": "random-800",
+      "seed": 42,
+      "ap_pct": 13.560588139788873,
+      "small_pct": 3.168952222645908,
+      "targets_pct": 3.3436892049914375
+    },
+    {
+      "run": "random-800-97",
+      "condition": "random-800",
+      "seed": 97,
+      "ap_pct": 13.17954034044592,
+      "small_pct": 2.6419584653181247,
+      "targets_pct": 0.6555649688331209
+    },
+    {
+      "run": "coco-800-42-retry1",
+      "condition": "coco-800",
+      "seed": 42,
+      "ap_pct": 15.122249943452005,
+      "small_pct": 2.973125485886091,
+      "targets_pct": 1.1600193850158707
+    },
+    {
+      "run": "coco-800-97-retry1",
+      "condition": "coco-800",
+      "seed": 97,
+      "ap_pct": 15.594118664711539,
+      "small_pct": 2.7699526968608925,
+      "targets_pct": 1.3638317817927335
+    }
+  ],
+  "public_test": {
+    "random-640": {
+      "ap": 7.007575513217581,
+      "ap50": 11.029901015416073,
+      "ap75": 7.225198603256041,
+      "ap_small": 2.4545244593484012,
+      "ap_medium": 4.963388454328024,
+      "ap_large": 11.423841179326992,
+      "ap_target": 1.5742867463893857
+    },
+    "coco-800": {
+      "ap": 7.744166963219101,
+      "ap50": 12.521462651426743,
+      "ap75": 7.793602268972739,
+      "ap_small": 2.723521236568022,
+      "ap_medium": 6.5369018714898255,
+      "ap_large": 11.758303775256191,
+      "ap_target": 2.2890125918864968
+    }
+  },
+  "phone_test": {
+    "random-640": {
+      "native": {
+        "ap": 6.862157167185057,
+        "ap50": 13.73372049972515,
+        "ap75": 6.534259700477511,
+        "ap_small": 1.4464948072913046,
+        "ap_medium": 6.619522245747264,
+        "ap_large": 13.317942108510064
+      },
+      "common": {
+        "ap": 7.233084581627493,
+        "ap50": 14.476083769980566,
+        "ap75": 6.887462927530348
+      }
+    },
+    "coco-800": {
+      "native": {
+        "ap": 7.061968086374167,
+        "ap50": 11.04055634472669,
+        "ap75": 7.809695086759671,
+        "ap_small": 3.509224603556326,
+        "ap_medium": 11.131121361576204,
+        "ap_large": 10.14942157147014
+      },
+      "common": {
+        "ap": 7.443696091043039,
+        "ap50": 11.637343174171377,
+        "ap75": 8.23184076712506
+      }
+    }
+  },
+  "gamma": [
+    {
+      "class": "Seluruh kelas",
+      "instances": 58,
+      "control_pct": 3.4065711333038062,
+      "gamma_pct": 4.312133301242212
+    },
+    {
+      "class": "person",
+      "instances": 6,
+      "control_pct": 8.211821182118213,
+      "gamma_pct": 20.61763319189062
+    },
+    {
+      "class": "light",
+      "instances": 14,
+      "control_pct": 4.305516265912305,
+      "gamma_pct": 3.539603960396039
+    }
+  ],
+  "gamma_examples": [
+    {
+      "case": 5,
+      "class": "chair",
+      "control": {
+        "same_class_iou": 0.8233151183970856,
+        "nearest_iou": 0.8735654541917914,
+        "nearest_class": "person"
+      },
+      "brightened": {
+        "same_class_iou": 0.8835008870490834,
+        "nearest_iou": 0.8835008870490834,
+        "nearest_class": "chair"
+      }
+    },
+    {
+      "case": 3,
+      "class": "light",
+      "control": {
+        "same_class_iou": 0.0,
+        "nearest_iou": 0.02421114244665567,
+        "nearest_class": "ceiling-merged"
+      },
+      "brightened": {
+        "same_class_iou": 0.0,
+        "nearest_iou": 0.10304219823356231,
+        "nearest_class": "ceiling-merged"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "case": 1,
+      "reference_label": "laptop",
+      "reference_area_px": 108102,
+      "model": "yolov8n",
+      "same_class_iou": 0.0,
+      "best_label": "stairs",
+      "best_iou": 0.8746517357222844,
+      "shown_label": "stairs",
+      "shown_iou": 0.8746517357222844
+    },
+    {
+      "case": 1,
+      "reference_label": "laptop",
+      "reference_area_px": 108102,
+      "model": "yolo11n",
+      "same_class_iou": 0.0,
+      "best_label": "wall-other-merged",
+      "best_iou": 0.8089510740391945,
+      "shown_label": "wall-other-merged",
+      "shown_iou": 0.8089510740391945
+    },
+    {
+      "case": 1,
+      "reference_label": "laptop",
+      "reference_area_px": 108102,
+      "model": "maskrcnn",
+      "same_class_iou": 0.0,
+      "best_label": "box",
+      "best_iou": 0.8467110112195966,
+      "shown_label": "box",
+      "shown_iou": 0.8467110112195966
+    },
+    {
+      "case": 2,
+      "reference_label": "chair",
+      "reference_area_px": 40569,
+      "model": "yolov8n",
+      "same_class_iou": 7.319304666056724e-05,
+      "best_label": "stairs",
+      "best_iou": 0.763273543446689,
+      "shown_label": "chair",
+      "shown_iou": 7.319304666056724e-05
+    },
+    {
+      "case": 2,
+      "reference_label": "chair",
+      "reference_area_px": 40569,
+      "model": "yolo11n",
+      "same_class_iou": 0.0022653602475320466,
+      "best_label": "stairs",
+      "best_iou": 0.7128021039295107,
+      "shown_label": "chair",
+      "shown_iou": 0.0022653602475320466
+    },
+    {
+      "case": 2,
+      "reference_label": "chair",
+      "reference_area_px": 40569,
+      "model": "maskrcnn",
+      "same_class_iou": 0.5537983178239084,
+      "best_label": "stairs",
+      "best_iou": 0.7688209258909655,
+      "shown_label": "chair",
+      "shown_iou": 0.5537983178239084
+    },
+    {
+      "case": 3,
+      "reference_label": "light",
+      "reference_area_px": 2751,
+      "model": "yolov8n",
+      "same_class_iou": 0.0,
+      "best_label": "wall-other-merged",
+      "best_iou": 0.06906680726067636,
+      "shown_label": "wall-other-merged",
+      "shown_iou": 0.06906680726067636
+    },
+    {
+      "case": 3,
+      "reference_label": "light",
+      "reference_area_px": 2751,
+      "model": "yolo11n",
+      "same_class_iou": 0.0,
+      "best_label": "ceiling-merged",
+      "best_iou": 0.05141064616695389,
+      "shown_label": "ceiling-merged",
+      "shown_iou": 0.05141064616695389
+    },
+    {
+      "case": 3,
+      "reference_label": "light",
+      "reference_area_px": 2751,
+      "model": "maskrcnn",
+      "same_class_iou": 0.0,
+      "best_label": "ceiling-merged",
+      "best_iou": 0.02421114244665567,
+      "shown_label": "ceiling-merged",
+      "shown_iou": 0.02421114244665567
+    },
+    {
+      "case": 4,
+      "reference_label": "person",
+      "reference_area_px": 19074,
+      "model": "yolov8n",
+      "same_class_iou": 0.79345703125,
+      "best_label": "person",
+      "best_iou": 0.79345703125,
+      "shown_label": "person",
+      "shown_iou": 0.79345703125
+    },
+    {
+      "case": 4,
+      "reference_label": "person",
+      "reference_area_px": 19074,
+      "model": "yolo11n",
+      "same_class_iou": 0.36215603201095564,
+      "best_label": "box",
+      "best_iou": 0.7808483911489033,
+      "shown_label": "person",
+      "shown_iou": 0.36215603201095564
+    },
+    {
+      "case": 4,
+      "reference_label": "person",
+      "reference_area_px": 19074,
+      "model": "maskrcnn",
+      "same_class_iou": 0.7587227952425604,
+      "best_label": "pan",
+      "best_iou": 0.765323482233996,
+      "shown_label": "person",
+      "shown_iou": 0.7587227952425604
+    },
+    {
+      "case": 5,
+      "reference_label": "chair",
+      "reference_area_px": 4834,
+      "model": "yolov8n",
+      "same_class_iou": 0.0,
+      "best_label": "person",
+      "best_iou": 0.8919765166340509,
+      "shown_label": "person",
+      "shown_iou": 0.8919765166340509
+    },
+    {
+      "case": 5,
+      "reference_label": "chair",
+      "reference_area_px": 4834,
+      "model": "yolo11n",
+      "same_class_iou": 0.9017666472529606,
+      "best_label": "chair",
+      "best_iou": 0.9017666472529606,
+      "shown_label": "chair",
+      "shown_iou": 0.9017666472529606
+    },
+    {
+      "case": 5,
+      "reference_label": "chair",
+      "reference_area_px": 4834,
+      "model": "maskrcnn",
+      "same_class_iou": 0.8233151183970856,
+      "best_label": "person",
+      "best_iou": 0.8735654541917914,
+      "shown_label": "chair",
+      "shown_iou": 0.8233151183970856
+    }
+  ],
+  "diagnosis": [
+    {
+      "condition": "random-640",
+      "size": "all",
+      "masks": 5344,
+      "below_iou": 2254,
+      "other_class_only": 952,
+      "correct_class": 2138
+    },
+    {
+      "condition": "random-640",
+      "size": "small",
+      "masks": 1201,
+      "below_iou": 906,
+      "other_class_only": 126,
+      "correct_class": 169
+    },
+    {
+      "condition": "random-640",
+      "size": "medium",
+      "masks": 2203,
+      "below_iou": 999,
+      "other_class_only": 406,
+      "correct_class": 798
+    },
+    {
+      "condition": "random-640",
+      "size": "large",
+      "masks": 1940,
+      "below_iou": 349,
+      "other_class_only": 420,
+      "correct_class": 1171
+    },
+    {
+      "condition": "coco-800",
+      "size": "all",
+      "masks": 5344,
+      "below_iou": 2223,
+      "other_class_only": 916,
+      "correct_class": 2205
+    },
+    {
+      "condition": "coco-800",
+      "size": "small",
+      "masks": 1201,
+      "below_iou": 913,
+      "other_class_only": 125,
+      "correct_class": 163
+    },
+    {
+      "condition": "coco-800",
+      "size": "medium",
+      "masks": 2203,
+      "below_iou": 955,
+      "other_class_only": 403,
+      "correct_class": 845
+    },
+    {
+      "condition": "coco-800",
+      "size": "large",
+      "masks": 1940,
+      "below_iou": 355,
+      "other_class_only": 388,
+      "correct_class": 1197
+    }
+  ],
+  "source_sha256": {
+    "dataset_public_640": "3bc2e86693d941dc5119e748137053c8b6bc9ce1bf408323ddd1129fb50a5ec4",
+    "dataset_test_public": "2e00b1b223f30403e7db35307179500d2b9df475ee5a337b314988b866f43182",
+    "dataset_phones_v3": "a94f6cd0814c7cff528bcbe2d86ba365d2a9abde1a12c6a13480a18a324847f7",
+    "analysis_gamma_v3": "750a60552931fffa6d3d03515bea957eded8851dbbe84d4b1eccb8b380d4cf32",
+    "public_predictions": {
+      "random-640": "b8a8243a1b4a02d0cde964c26be418ba7aef013ee759f8df88d2cf6980f80e66",
+      "coco-800": "e110b115a32e101baa4d3e17dc77e10337ec53e51ccba32a1f92f545cfeda987"
+    }
+  }
+}
