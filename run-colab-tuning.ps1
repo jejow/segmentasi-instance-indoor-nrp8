@@ -1,5 +1,16 @@
-param([switch]$Check)
+param(
+    [switch]$Check,
+    [ValidateSet('full-uniform','full-repeat','full-repeat-mask2','full-repeat-mask2-light','hard-uniform','hard-foreground')]
+    [string]$OnlyRun,
+    [ValidatePattern('^0[1-9]$')]
+    [string]$ProfileOverride,
+    [ValidatePattern('^-retry[0-9]+$')]
+    [string]$RetrySuffix
+)
 $ErrorActionPreference = 'Stop'
+if (($ProfileOverride -or $RetrySuffix) -and !$OnlyRun) {
+    throw 'Pilih satu run dengan -OnlyRun sebelum mengubah profil atau ID.'
+}
 $launcher = 'C:\Users\junxi\.agents\skills\colab\scripts\colab.ps1'
 $stablePython = Join-Path $env:LOCALAPPDATA 'FP-K2-Training\segmentasi-nrp8-venv\Scripts\python.exe'
 $backend = 'C:\Users\junxi\OneDrive\Documents\Semester 5\Kompt Biomeds\FP\fp_rsna\eksperimen_model\03_colab\colab_project.py'
@@ -12,9 +23,12 @@ $jobs = @(
     @{Id='hard-foreground'; Profile='08'; Sampling='foreground'; Ratio=4; Hard=$true; Label='Tiga kelas, oversampling gambar positif'}
 )
 foreach ($job in $jobs) {
+    if ($OnlyRun -and $job.Id -ne $OnlyRun) { continue }
+    $profile = if ($ProfileOverride) { $ProfileOverride } else { $job.Profile }
+    $runId = $job.Id + $RetrySuffix
     $launch = @(
         'start','train.py','--root',$PSScriptRoot,'--project','segmentasi-indoor-tuning',
-        '--run',$job.Id,'--profile',$job.Profile,'--accelerator','T4',
+        '--run',$runId,'--profile',$profile,'--accelerator','T4',
         '--title','Segmentasi indoor: perbaikan preprocessing',
         '--dataset','Panoptic Indoor Segmentation v5, train 397 / valid 166',
         '--model','YOLOv8n-seg','--method',$job.Label,'--epochs','32',
