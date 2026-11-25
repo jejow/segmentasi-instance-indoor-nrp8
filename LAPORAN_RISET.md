@@ -12,6 +12,10 @@ Pada test resmi, model yang dilatih dengan semua kelas unggul pada ketiga pasang
 
 Pada eksperimen lanjutan, Mask R-CNN v2 dengan transfer prediktor COCO dan input internal 800 px mencapai Mask AP 7,74% pada test resmi. Kontrol 640 px dengan seed yang sama mencapai 7,01%. Pada 37 kelas yang ada di kedua set uji, AP foto ponsel berubah dari 7,23% menjadi 7,44%. Uji pencahayaan pada empat foto redup memperlihatkan hasil yang berbeda antara orang dan lampu. [Metrik dan sumber data eksperimen](bukti/hasil/ringkasan.json)
 
+### Panduan membaca visualisasi
+
+Grafik hasil utama diikuti kurva training, perbandingan AP menurut kelas dan ukuran, serta contoh efek threshold pada satu citra. Lampiran A memperlihatkan empat adegan dari test resmi. Lampiran B pada PDF lokal memuat indeks dan lembar hasil untuk setiap foto HP.
+
 ### Pertanyaan penelitian
 
 1. Bagaimana urutan performa model one-stage dan two-stage pada dua set uji?
@@ -236,8 +240,8 @@ Mask R-CNN memimpin tiga baseline pada kedua domain. Pelatihan hanya tiga kelas 
 |---|---|
 | Riwayat kode dan hipotesis | [Repositori GitHub](https://github.com/jejow/segmentasi-instance-indoor-nrp8) dan [logbook](LOGBOOK.md). |
 | Waktu GPU dan log asli | [Tabel waktu per run](bukti/hasil/waktu-gpu.csv) dan [results.csv per epoch](bukti/log-training). |
-| Hasil eksperimen dan visual | [CSV dan grafik](bukti/hasil), [panel mask](bukti/visual), dan [skrip pembuat panel](build_visual_report.py). |
-| Foto, EXIF, dan mask | PDF lokal memuat galeri 40 foto v3 dan overlay lima studi kasus. Paket lokal menyertakan audit dan EXIF. Screenshot editor Roboflow masih perlu dilampirkan. [Audit data](TEST_PRIBADI.md) |
+| Hasil eksperimen dan visual | [CSV dan grafik](bukti/hasil), [panel mask](bukti/visual), dan [skrip pembuat lampiran](build_mask_atlas.py). |
+| Foto, EXIF, dan mask | Lampiran B pada PDF lokal memuat masukan, acuan COCO, dan delapan keluaran model untuk setiap foto HP v3. Paket lokal menyertakan audit dan EXIF. Screenshot editor Roboflow masih perlu dilampirkan. [Audit data](TEST_PRIBADI.md) |
 | Penggunaan AI | [Deklarasi, prompt utama, dan contoh koreksi](DEKLARASI_AI.md). |
 
 <!-- figure: output/test-pribadi/perbaikan-mask.jpg | Bukti audit. Overlay sebelum dan sesudah pemisahan objek di Roboflow. -->
@@ -268,4 +272,78 @@ Untuk setiap kelas target, panel mengambil instance non-crowd dengan luas mask a
 
 Sumber foto dan anotasi Gambar 11–13 adalah [Panoptic Indoor Segmentation v5, panopticindoor, 2024](https://universe.roboflow.com/panopticindoor/panoptic-indoor-segmentation/dataset/5), berlisensi [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Citra dipetakan ke kanvas 640 × 640, diberi overlay mask, dan disusun menjadi panel. Setiap panel menyimpan ID citra dan instance pada ekspor yang telah diproses.
 
-<!-- local-gallery -->
+<!-- page-break -->
+
+## Cakupan foto dan kurva training
+
+Foto HP diurutkan seperti indeks Lampiran B. Kelas `person`, `light`, dan `chair` menyumbang 330 dari 619 mask acuan. Jumlah mask per foto berkisar antara 3 dan 51. Kondisi sulit ditetapkan lewat pemeriksaan foto sebelum analisis prediksi. [Audit foto HP](TEST_PRIBADI.md) · [Jumlah mask per foto](bukti/visual/ringkasan-overlay.json)
+
+![Gambar 14. Jumlah mask acuan per foto HP. Arsiran menandai 12 foto sulit. Panel kanan mengurutkan delapan kelas dengan mask terbanyak.](bukti/visual/cakupan-foto-hp.png)
+
+Untuk YOLO, grafik mengambil kolom Mask AP50-95 validasi dari log setiap epoch. Untuk Mask R-CNN, grafik memakai training loss dengan sumbu logaritmik. Kedua kondisi memiliki 16 epoch. [Log training asli](bukti/log-training/inti)
+
+![Gambar 15. Riwayat training tiga model pada dua kondisi. Kedua panel YOLO memakai skala AP yang sama.](bukti/visual/kurva-training-utama.png)
+
+<!-- page-break -->
+
+## Kinerja menurut ambang IoU dan kondisi foto
+
+AP50 dan AP75 menilai mask pada IoU 0,50 dan 0,75. Panel AP50-95 mengikuti sepuluh ambang COCO. Perbandingan test resmi dan foto HP memakai 37 kelas yang beranotasi di kedua set. Pada perbandingan sesama foto HP, kelompok sulit dan reguler memakai 23 kelas bersama. [Skor tiap kelas dan model](bukti/visual/ap-kelas-lengkap.csv) · [Rangkuman evaluasi](bukti/hasil/ringkasan.json)
+
+![Gambar 16. AP50-95, AP50, dan AP75 untuk lima konfigurasi semua kelas. Lingkaran menunjukkan test resmi. Kotak menunjukkan foto HP.](bukti/visual/ap-tiga-ambang.png)
+
+![Gambar 17. AP50-95 tiga baseline pada 12 foto sulit dan 28 foto reguler. Komposisi adegan berbeda di kedua kelompok.](bukti/visual/ap-kondisi-sulit.png)
+
+<!-- page-break -->
+
+## Ukuran objek dan respons terhadap cahaya
+
+AP menurut ukuran memakai pembagian luas mask COCO pada kanvas evaluasi. Kelompok kecil, sedang, dan besar dihitung pada kelas yang tersedia di masing-masing set. Untuk foto HP, hasil perbaikan pada objek kecil mencakup data dari 39 kelas yang memiliki anotasi. [Skor dan diagnosis asli](bukti/hasil/ringkasan.json)
+
+![Gambar 18. Mask AP50-95 menurut ukuran acuan pada Mask R-CNN v2 kontrol 640 dan COCO 800.](bukti/visual/ap-ukuran-mask.png)
+
+![Gambar 19. IoU terbaik sekelas dan IoU terbaik tanpa batasan label, sebelum dan sesudah gamma. Kandidat terbaik untuk lampu berlabel ceiling-merged di kedua kondisi.](bukti/visual/gamma-iou-kasus.png)
+
+<!-- figure: output/report/visual/gamma-input.jpg | Empat masukan uji gamma. Baris pertama adalah piksel kontrol. Baris kedua memakai gamma 0,65 pada area foto dengan padding tetap. -->
+
+<!-- page-break -->
+
+## Kurva diagnostik dan contoh inferensi
+
+Tiap titik pada kurva memakai satu ambang confidence dari 0,005 hingga 0,90. Prediksi dipasangkan ke paling banyak satu acuan sekelas dengan IoU mask minimal 0,50, dari skor tertinggi ke terendah. Precision dan recall dihitung secara mikro pada 37 kelas bersama dengan menjumlahkan semua pasangan. AP pada bagian hasil utama tetap memakai evaluator COCO. [Data kurva dan hitungan mask](bukti/visual/ringkasan-overlay.json)
+
+![Gambar 20. Kurva precision–recall mikro dari prediksi tersimpan. Lingkaran menunjukkan confidence 0,15 dan kotak menunjukkan 0,30.](bukti/visual/precision-recall-confidence.png)
+
+![Gambar 21. Satu citra test resmi dari foto ekspor ke kanvas 640 × 640, lalu dua tampilan mask dari keluaran Mask R-CNN v2 kontrol yang sama.](bukti/visual/contoh-inferensi.jpg)
+
+Pada citra test v5 ID 216, perubahan ambang dari 0,15 ke 0,30 menyisakan 7 dari 11 prediksi. Satu dari empat mask yang cocok dengan acuan ikut tersaring. Citra Gambar 21 berasal dari [Panoptic Indoor Segmentation v5, panopticindoor, 2024](https://universe.roboflow.com/panopticindoor/panoptic-indoor-segmentation/dataset/5), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+<!-- page-break -->
+
+## AP mask per kelas
+
+![Gambar 22. AP50-95 per kelas, bagian 1 dari 4. Kolom n adalah jumlah mask acuan pada set tersebut.](bukti/visual/ap-kelas-1.png)
+
+Y8 dan Y11 adalah YOLOv8n-seg dan YOLO11n-seg. R-CNN adalah Mask R-CNN baseline. v2 640 memakai prediktor acak dan input internal 640 px. v2 800 memakai transfer prediktor COCO dan input internal 800 px. Semua konfigurasi pada keempat matriks dilatih dengan seluruh kelas. Tanda pisah menunjukkan kelas tanpa mask acuan pada set uji itu. Angka 0 adalah AP nol pada kelas yang memiliki acuan. [AP50-95, AP50, AP75, dan jumlah mask dalam CSV](bukti/visual/ap-kelas-lengkap.csv)
+
+![Gambar 23. AP50-95 per kelas, bagian 2 dari 4. Urutan kelas dan skala warna berlanjut dari Gambar 22.](bukti/visual/ap-kelas-2.png)
+
+![Gambar 24. AP50-95 per kelas, bagian 3 dari 4. Kedua set uji memakai skala warna yang sama.](bukti/visual/ap-kelas-3.png)
+
+![Gambar 25. AP50-95 per kelas, bagian 4 dari 4. Keempat matriks mencakup 71 kelas yang beranotasi pada salah satu atau kedua set uji.](bukti/visual/ap-kelas-4.png)
+
+<!-- page-break -->
+
+## Hasil NRP 8 per kelas target
+
+![Gambar 26. AP50-95 untuk knife, light, dan spoon pada masing-masing kondisi pelatihan. n adalah jumlah mask acuan setiap kelas.](bukti/visual/ap-target-nrp8.png)
+
+Ketiga baseline dan ketiga run tiga kelas memiliki AP pisau nol pada kedua set. Pada foto HP hanya ada satu mask pisau dan dua mask sendok, sehingga perubahan pada sedikit instance bisa mengubah kesimpulan untuk kedua kelas. [Rekap eksperimen NRP 8](bukti/hasil/nrp8-dua-test.csv) · [AP per kelas](bukti/visual/ap-kelas-lengkap.csv)
+
+### Cara membaca lampiran mask
+
+Setiap lembar menampilkan foto masukan dan semua mask acuan. Delapan panel prediksi memuat tiga model untuk kondisi semua kelas, tiga model untuk kondisi tiga kelas, serta Mask R-CNN v2 kontrol dan COCO 800. Panel memakai semua mask dengan confidence minimal 0,15. Daftar di sisi panel meringkas tiga prediksi berskor tertinggi atau tiga kelas acuan terbanyak. Warna kelas konsisten di seluruh panel.
+
+Hitungan cocok mensyaratkan kelas yang sama dan IoU minimal 0,50. FP berarti prediksi tidak cocok dengan acuan. FN berarti mask acuan tidak mendapat pasangan. Pada baris tiga kelas, FN dihitung hanya untuk `knife`, `light`, dan `spoon`. Dua YOLO tiga kelas memiliki nol prediksi tersimpan pada batas evaluasi 0,005.
+
+Lampiran A memilih empat citra v5 lewat aturan yang tetap. Citra pertama memiliki jumlah kecocokan terbesar dari tiga baseline. Citra kedua memiliki jumlah FN terbesar dari ketiganya. Dua citra lain menunjukkan kenaikan dan penurunan jumlah kecocokan terbesar saat beralih dari kontrol ke COCO 800 pada threshold tampilan. Jika nilai seri, dipilih ID terkecil. Lampiran B memuat seluruh 40 foto HP sesuai urutan indeks, termasuk 12 foto sulit. [Empat lembar test resmi](bukti/visual/atlas-v5.pdf) · [Pemilihan dan sumber prediksi](bukti/visual/ringkasan-overlay.json)

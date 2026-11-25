@@ -7,13 +7,14 @@ Tugas Visi Komputer ITS, CPMK 3, NRP berakhiran 8. YOLOv8n-seg dan YOLO11n-seg m
 | Berkas | Isi |
 |---|---|
 | [Laporan](LAPORAN_RISET.md) | Rancangan, hasil pada kedua set, lima studi kasus, dan uji pencahayaan |
-| [PDF laporan](laporan-segmentasi-indoor-nrp8.pdf) · [Panel visual](bukti/visual) | Foto test publik, mask acuan, prediksi tiga model pada dua kondisi, dan siluet lima studi kasus foto HP |
+| [PDF laporan](laporan-segmentasi-indoor-nrp8.pdf) · [Panel visual](bukti/visual) | Visual data, training, AP per kelas, efek threshold, dan lima studi kasus foto HP dalam bentuk siluet |
+| [Lampiran test resmi](bukti/visual/atlas-v5.pdf) · [AP lengkap per kelas](bukti/visual/ap-kelas-lengkap.csv) | Empat adegan v5 dengan acuan COCO dan delapan keluaran model. CSV memuat AP50-95, AP50, AP75, dan jumlah mask |
 | [Eksperimen NRP 8](bukti/hasil/nrp8-dua-test.csv) | Kondisi semua kelas dan tiga kelas untuk setiap model. Kolom `*_pct` dalam persen |
 | [Skor per kelas](bukti/hasil/ap-per-kelas.csv) | AP dalam skala 0 sampai 1 dan jumlah mask acuan untuk kedua set |
 | [Log asli per epoch](bukti/log-training) · [Waktu GPU](bukti/hasil/waktu-gpu.csv) | Salinan `results.csv`, durasi training, seed, dan hash file log |
 | [Logbook](LOGBOOK.md) · [Deklarasi AI](DEKLARASI_AI.md) | Hipotesis bertanggal, keputusan, prompt, dan koreksi saran AI |
 
-Angka analisis dan grafik tersedia di [bukti/hasil](bukti/hasil). PDF lokal memuat galeri 40 foto HP dan overlay lima studi kasus. PDF GitHub menampilkan kelima kasus sebagai siluet mask. EXIF mentah dan checkpoint tersedia dalam paket lokal.
+Angka analisis dan grafik tersedia di [bukti/hasil](bukti/hasil). PDF lokal `output/pdf/laporan-segmentasi-indoor-nrp8.pdf` menyertakan indeks 40 foto HP. Setiap lembar memuat foto masukan, acuan COCO, delapan keluaran model, dan jumlah mask cocok, FP, serta FN. Foto HP, EXIF, dan checkpoint disimpan dalam paket lokal. PDF GitHub menampilkan kelima studi kasus HP sebagai siluet mask.
 
 ## Menjalankan eksperimen
 
@@ -48,10 +49,18 @@ Untuk checkpoint transfer COCO 800 px, gunakan `python demo_segmentasi.py foto-b
 ## Membuat ulang grafik dan PDF
 
 ```powershell
-python -m pip install matplotlib pillow reportlab
+python -m pip install matplotlib pillow reportlab pypdf
 python build_report_evidence.py --figures-only
 python render_research_report.py
 python render_research_report.py --public --output laporan-segmentasi-indoor-nrp8.pdf
 ```
 
-Mode `--figures-only` memakai rekap yang tersedia dalam repo. Untuk membuat ulang panel dan galeri dari arsip evaluasi lokal, gunakan `uv run --no-project --python 3.12 --with pycocotools==2.0.10 --with pillow --with numpy python build_visual_report.py`. Panel test publik memakai prediksi enam run di `output/runs`. Panel studi kasus memakai evaluasi foto HP v2, sedangkan galeri memakai v3.
+Mode `--figures-only` memakai rekap yang tersedia dalam repo. Tiga perintah berikut membuat ulang panel dan grafik tambahan dari arsip evaluasi lokal.
+
+```powershell
+uv run --no-project --python 3.12 --with pycocotools==2.0.10 --with pillow --with numpy --with reportlab python build_mask_atlas.py
+uv run --no-project --python 3.12 --with pycocotools==2.0.10 --with numpy --with matplotlib python build_visual_metrics.py
+uv run --no-project --python 3.12 --with pycocotools==2.0.10 --with pillow --with numpy python build_visual_report.py
+```
+
+Lampiran v5 dan HP memakai prediksi tersimpan. Lima studi kasus memakai evaluasi foto HP v2. Lampiran 40 foto memakai v3. [Aturan pemilihan, ambang, dan hash arsip](bukti/visual/ringkasan-overlay.json)

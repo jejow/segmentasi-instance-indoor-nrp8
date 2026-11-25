@@ -1,0 +1,946 @@
+{
+  "iou": 0.5,
+  "display_confidence": 0.15,
+  "shared_classes": 37,
+  "test_v5": {
+    "reference_masks": 4116,
+    "runs": {
+      "YOLOv8n-seg": [
+        {
+          "threshold": 0.005,
+          "predictions": 21182,
+          "matched": 1268
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 12261,
+          "matched": 1102
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 6591,
+          "matched": 869
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 3803,
+          "matched": 682
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 2596,
+          "matched": 567
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 1939,
+          "matched": 488
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 1236,
+          "matched": 380
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 830,
+          "matched": 303
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 574,
+          "matched": 248
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 388,
+          "matched": 187
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 251,
+          "matched": 132
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 134,
+          "matched": 81
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 56,
+          "matched": 44
+        }
+      ],
+      "YOLO11n-seg": [
+        {
+          "threshold": 0.005,
+          "predictions": 23463,
+          "matched": 1186
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 15506,
+          "matched": 1082
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 8509,
+          "matched": 879
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 4700,
+          "matched": 702
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 3197,
+          "matched": 588
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 2352,
+          "matched": 505
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 1381,
+          "matched": 375
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 863,
+          "matched": 286
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 563,
+          "matched": 229
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 338,
+          "matched": 148
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 189,
+          "matched": 95
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 83,
+          "matched": 52
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 26,
+          "matched": 19
+        }
+      ],
+      "Mask R-CNN": [
+        {
+          "threshold": 0.005,
+          "predictions": 23702,
+          "matched": 1628
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 20817,
+          "matched": 1590
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 15128,
+          "matched": 1478
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 9937,
+          "matched": 1297
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 7511,
+          "matched": 1183
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 6008,
+          "matched": 1095
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 4272,
+          "matched": 974
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 3259,
+          "matched": 872
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 2542,
+          "matched": 776
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 2012,
+          "matched": 704
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 1498,
+          "matched": 598
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 1045,
+          "matched": 497
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 613,
+          "matched": 349
+        }
+      ],
+      "Mask R-CNN v2 640": [
+        {
+          "threshold": 0.005,
+          "predictions": 20437,
+          "matched": 1735
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 15557,
+          "matched": 1639
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 10521,
+          "matched": 1503
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 7370,
+          "matched": 1380
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 5905,
+          "matched": 1291
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 5046,
+          "matched": 1229
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 3965,
+          "matched": 1139
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 3279,
+          "matched": 1049
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 2766,
+          "matched": 981
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 2355,
+          "matched": 919
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 1969,
+          "matched": 847
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 1574,
+          "matched": 762
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 1143,
+          "matched": 621
+        }
+      ],
+      "Mask R-CNN v2 COCO 800": [
+        {
+          "threshold": 0.005,
+          "predictions": 20658,
+          "matched": 1780
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 15773,
+          "matched": 1697
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 10615,
+          "matched": 1556
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 7587,
+          "matched": 1413
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 6176,
+          "matched": 1339
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 5372,
+          "matched": 1271
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 4198,
+          "matched": 1163
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 3496,
+          "matched": 1089
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 2896,
+          "matched": 1002
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 2436,
+          "matched": 935
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 2010,
+          "matched": 842
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 1605,
+          "matched": 756
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 1167,
+          "matched": 634
+        }
+      ]
+    }
+  },
+  "test_hp": {
+    "reference_masks": 612,
+    "runs": {
+      "YOLOv8n-seg": [
+        {
+          "threshold": 0.005,
+          "predictions": 2771,
+          "matched": 149
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 1666,
+          "matched": 121
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 888,
+          "matched": 90
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 510,
+          "matched": 74
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 350,
+          "matched": 62
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 257,
+          "matched": 55
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 157,
+          "matched": 45
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 105,
+          "matched": 36
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 70,
+          "matched": 27
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 50,
+          "matched": 22
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 31,
+          "matched": 18
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 20,
+          "matched": 13
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 10,
+          "matched": 9
+        }
+      ],
+      "YOLO11n-seg": [
+        {
+          "threshold": 0.005,
+          "predictions": 3138,
+          "matched": 120
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 2138,
+          "matched": 108
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 1130,
+          "matched": 76
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 600,
+          "matched": 61
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 422,
+          "matched": 47
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 312,
+          "matched": 40
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 173,
+          "matched": 31
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 98,
+          "matched": 20
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 51,
+          "matched": 14
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 33,
+          "matched": 11
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 15,
+          "matched": 5
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 6,
+          "matched": 2
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 1,
+          "matched": 0
+        }
+      ],
+      "Mask R-CNN": [
+        {
+          "threshold": 0.005,
+          "predictions": 2858,
+          "matched": 191
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 2711,
+          "matched": 189
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 2249,
+          "matched": 179
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 1563,
+          "matched": 160
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 1182,
+          "matched": 145
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 948,
+          "matched": 139
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 693,
+          "matched": 121
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 528,
+          "matched": 107
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 405,
+          "matched": 93
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 315,
+          "matched": 82
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 226,
+          "matched": 70
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 150,
+          "matched": 54
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 78,
+          "matched": 34
+        }
+      ],
+      "Mask R-CNN v2 640": [
+        {
+          "threshold": 0.005,
+          "predictions": 2425,
+          "matched": 220
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 2085,
+          "matched": 214
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 1571,
+          "matched": 199
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 1139,
+          "matched": 180
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 917,
+          "matched": 173
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 792,
+          "matched": 166
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 635,
+          "matched": 150
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 527,
+          "matched": 141
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 443,
+          "matched": 127
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 375,
+          "matched": 115
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 313,
+          "matched": 106
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 245,
+          "matched": 95
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 168,
+          "matched": 76
+        }
+      ],
+      "Mask R-CNN v2 COCO 800": [
+        {
+          "threshold": 0.005,
+          "predictions": 2540,
+          "matched": 217
+        },
+        {
+          "threshold": 0.02,
+          "predictions": 2237,
+          "matched": 209
+        },
+        {
+          "threshold": 0.05,
+          "predictions": 1697,
+          "matched": 191
+        },
+        {
+          "threshold": 0.1,
+          "predictions": 1206,
+          "matched": 170
+        },
+        {
+          "threshold": 0.15,
+          "predictions": 969,
+          "matched": 163
+        },
+        {
+          "threshold": 0.2,
+          "predictions": 831,
+          "matched": 154
+        },
+        {
+          "threshold": 0.3,
+          "predictions": 651,
+          "matched": 142
+        },
+        {
+          "threshold": 0.4,
+          "predictions": 535,
+          "matched": 134
+        },
+        {
+          "threshold": 0.5,
+          "predictions": 453,
+          "matched": 123
+        },
+        {
+          "threshold": 0.6,
+          "predictions": 372,
+          "matched": 110
+        },
+        {
+          "threshold": 0.7,
+          "predictions": 318,
+          "matched": 104
+        },
+        {
+          "threshold": 0.8,
+          "predictions": 245,
+          "matched": 90
+        },
+        {
+          "threshold": 0.9,
+          "predictions": 168,
+          "matched": 78
+        }
+      ]
+    }
+  },
+  "cakupan_hp": [
+    {
+      "n": 1,
+      "sulit": false,
+      "mask": 10
+    },
+    {
+      "n": 2,
+      "sulit": true,
+      "mask": 20
+    },
+    {
+      "n": 3,
+      "sulit": false,
+      "mask": 22
+    },
+    {
+      "n": 4,
+      "sulit": false,
+      "mask": 37
+    },
+    {
+      "n": 5,
+      "sulit": false,
+      "mask": 16
+    },
+    {
+      "n": 6,
+      "sulit": false,
+      "mask": 19
+    },
+    {
+      "n": 7,
+      "sulit": true,
+      "mask": 16
+    },
+    {
+      "n": 8,
+      "sulit": false,
+      "mask": 5
+    },
+    {
+      "n": 9,
+      "sulit": false,
+      "mask": 11
+    },
+    {
+      "n": 10,
+      "sulit": false,
+      "mask": 18
+    },
+    {
+      "n": 11,
+      "sulit": true,
+      "mask": 12
+    },
+    {
+      "n": 12,
+      "sulit": true,
+      "mask": 11
+    },
+    {
+      "n": 13,
+      "sulit": false,
+      "mask": 4
+    },
+    {
+      "n": 14,
+      "sulit": false,
+      "mask": 7
+    },
+    {
+      "n": 15,
+      "sulit": true,
+      "mask": 19
+    },
+    {
+      "n": 16,
+      "sulit": true,
+      "mask": 6
+    },
+    {
+      "n": 17,
+      "sulit": false,
+      "mask": 6
+    },
+    {
+      "n": 18,
+      "sulit": false,
+      "mask": 7
+    },
+    {
+      "n": 19,
+      "sulit": true,
+      "mask": 12
+    },
+    {
+      "n": 20,
+      "sulit": false,
+      "mask": 26
+    },
+    {
+      "n": 21,
+      "sulit": false,
+      "mask": 13
+    },
+    {
+      "n": 22,
+      "sulit": false,
+      "mask": 4
+    },
+    {
+      "n": 23,
+      "sulit": true,
+      "mask": 22
+    },
+    {
+      "n": 24,
+      "sulit": false,
+      "mask": 19
+    },
+    {
+      "n": 25,
+      "sulit": false,
+      "mask": 8
+    },
+    {
+      "n": 26,
+      "sulit": false,
+      "mask": 36
+    },
+    {
+      "n": 27,
+      "sulit": false,
+      "mask": 51
+    },
+    {
+      "n": 28,
+      "sulit": false,
+      "mask": 33
+    },
+    {
+      "n": 29,
+      "sulit": true,
+      "mask": 5
+    },
+    {
+      "n": 30,
+      "sulit": false,
+      "mask": 21
+    },
+    {
+      "n": 31,
+      "sulit": true,
+      "mask": 6
+    },
+    {
+      "n": 32,
+      "sulit": false,
+      "mask": 5
+    },
+    {
+      "n": 33,
+      "sulit": false,
+      "mask": 3
+    },
+    {
+      "n": 34,
+      "sulit": false,
+      "mask": 4
+    },
+    {
+      "n": 35,
+      "sulit": true,
+      "mask": 16
+    },
+    {
+      "n": 36,
+      "sulit": true,
+      "mask": 15
+    },
+    {
+      "n": 37,
+      "sulit": false,
+      "mask": 6
+    },
+    {
+      "n": 38,
+      "sulit": false,
+      "mask": 14
+    },
+    {
+      "n": 39,
+      "sulit": false,
+      "mask": 35
+    },
+    {
+      "n": 40,
+      "sulit": false,
+      "mask": 19
+    }
+  ],
+  "adegan_v5": [
+    {
+      "image_id": 268,
+      "seleksi": "Kecocokan gabungan tertinggi",
+      "nilai_seleksi": 52
+    },
+    {
+      "image_id": 273,
+      "seleksi": "Mask acuan paling sering terlewat",
+      "nilai_seleksi": 383
+    },
+    {
+      "image_id": 353,
+      "seleksi": "Kecocokan bertambah pada COCO 800",
+      "nilai_seleksi": 7
+    },
+    {
+      "image_id": 270,
+      "seleksi": "Kecocokan berkurang pada COCO 800",
+      "nilai_seleksi": 6
+    }
+  ],
+  "contoh_threshold": {
+    "image_id": 216,
+    "reference_masks": 7,
+    "0.15": {
+      "predictions": 11,
+      "matched": 4
+    },
+    "0.30": {
+      "predictions": 7,
+      "matched": 3
+    }
+  },
+  "sha256": {
+    "test_v5": "3bc2e86693d941dc5119e748137053c8b6bc9ce1bf408323ddd1129fb50a5ec4",
+    "test_v5_subset": "2e00b1b223f30403e7db35307179500d2b9df475ee5a337b314988b866f43182",
+    "test_hp_v3": "a94f6cd0814c7cff528bcbe2d86ba365d2a9abde1a12c6a13480a18a324847f7",
+    "prediksi_v5": {
+      "full-yolov8n-r2": "365cc808fadb8b6ef5eef25dfe9fdb39b5093a64b5444972b43f2e5c9f15356d",
+      "full-yolo11n-r3": "a9fb1149678d27e33a396b7ff489e8875a4d284be586ac21d383672bf17e676d",
+      "full-maskrcnn-eval": "293211ec8fbfc342b335075bec1bb263401a175472fade446c55d138c9fd8cdf",
+      "three-yolov8n": "5ad72fa0c2910bf8b2e863a6a913d405633b22cf2b5cc0d1286efb9b17fbd184",
+      "three-yolo11n": "d823c32ee4b43965c5fc9d1f411168b1d5a0d9b2747805a78ee2ec909e115778",
+      "three-maskrcnn-r3": "11914c07e4d73aa02e1f82663de001f4528dce90ec9c7e5060f808b20ac343b6",
+      "rcnn-v2-640": "b8a8243a1b4a02d0cde964c26be418ba7aef013ee759f8df88d2cf6980f80e66",
+      "rcnn-v2-coco800": "e110b115a32e101baa4d3e17dc77e10337ec53e51ccba32a1f92f545cfeda987"
+    },
+    "prediksi_hp": {
+      "full-yolov8n-r2": "89e0b344a301dd5dbd1b4fdbf30cbf632f19d78e7f2d2240d6a9040811fab829",
+      "full-yolo11n-r3": "44a3d745ebf320ffaa04ceb5cd11fbe94c69b5c16b8baf6c6855e0fa5f0e78b4",
+      "full-maskrcnn-eval": "21282a647f81aa08eb1dc15b557356ac5faa7a0cb570bb4d47dbf83514cb6a2a",
+      "three-yolov8n": "7ab1a8d55cc510280c9e71dd44a5cee32bc3ebaaa5e505f21ffa59e51dc4874a",
+      "three-yolo11n": "73eb05ca1408097f436042fb69c323cf0af50599fad9f2dbd5bfb20bfe7d408a",
+      "three-maskrcnn-r3": "3a7a3b5bfdb93ebe10955e3c239f69ace9fc5c713de97857644fdae7b4b2bb4c",
+      "rcnn-v2-640": "171ff38162e21d0b05bad9e77fb781babad740fc689c76d1a6423458a5a72349",
+      "rcnn-v2-coco800": "87961e4ef0205ee39197a1f496eef27bd39a6b0e954990ac63ee710752768e5e"
+    }
+  }
+}

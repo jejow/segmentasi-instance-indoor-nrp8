@@ -1,10 +1,12 @@
 """Render the study Markdown and its local figures as an A4 report."""
 import argparse
 from html import escape
+from io import BytesIO
 import re
 from pathlib import Path
 
 from PIL import Image as Raster
+from pypdf import PdfWriter
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
@@ -25,6 +27,14 @@ WIDTH = A4[0] - MARGIN * 2
 LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 LOCAL_FIGURE = re.compile(r"^<!-- figure: (.+?) \| (.+) -->$")
 NUMBER = re.compile(r"[+-]?\d+(?:[.,]\d+)*(?:\s*%|\s+poin)?")
+
+
+class ResearchDocument(SimpleDocTemplate):
+    def afterFlowable(self, flowable):
+        if isinstance(flowable, Paragraph) and flowable.style.name == "head":
+            key = f"section-{self.seq.nextf('section')}"
+            self.canv.bookmarkPage(key)
+            self.canv.addOutlineEntry(flowable.getPlainText(), key)
 
 
 def fonts():
@@ -126,26 +136,6 @@ def render(source, destination, public=False):
             story.append(HRFlowable(width="100%", thickness=.65, color=LINE, spaceBefore=3, spaceAfter=14))
         elif line == "<!-- page-break -->":
             story.append(PageBreak())
-        elif line == "<!-- local-gallery -->":
-            gallery = source.parent / "output/report/visual"
-            sheets = [gallery / f"galeri-{number}.jpg" for number in range(1, 6)]
-            if not public and all(sheet.is_file() for sheet in sheets):
-                for index_sheet, sheet in enumerate(sheets):
-                    if index_sheet % 2 == 0:
-                        story.append(PageBreak())
-                        story.append(Paragraph("Galeri foto uji dari ponsel", typography["head"]))
-                        story.append(Paragraph(
-                            "Foto pada kanvas evaluasi 640 × 640, tanpa overlay. "
-                            "Jumlah mask dan kategori kondisi berasal dari snapshot v3.",
-                            typography["body"],
-                        ))
-                    first = index_sheet * 8 + 1
-                    story.append(KeepTogether([
-                        figure(sheet, max_height=275),
-                        Spacer(1, 5),
-                        Paragraph(f"Foto {first:02d} sampai {first + 7:02d} dari 40.",
-                                  typography["caption"]),
-                    ]))
         elif line.startswith("## "):
             section = line[3:]
             if section == "Bukti audit dan demo":
@@ -159,7 +149,7 @@ def render(source, destination, public=False):
             path, caption = local.groups()
             attachment = source.parent / path
             if attachment.is_file():
-                height = {"Studi kasus kegagalan": 145, "Studi kasus dengan cahaya sulit": 116}.get(section, 155)
+                height = 232 if attachment.name == "gamma-input.jpg" else 155
                 story.append(KeepTogether([
                     figure(attachment, max_height=height),
                     Spacer(1, 5),
@@ -181,6 +171,8 @@ def render(source, destination, public=False):
                     "Studi kasus kegagalan": 145,
                     "Studi kasus dengan cahaya sulit": 116,
                     "Contoh visual eksperimen NRP 8": 278,
+                    "AP mask per kelas": 338,
+                    "Kurva diagnostik dan contoh inferensi": 214,
                 }.get(section, 192)
                 story.append(KeepTogether([
                     figure(attachment, max_height=height),
@@ -227,13 +219,25 @@ def render(source, destination, public=False):
         canvas.drawRightString(A4[0] - MARGIN, 26, f"{document.page:02d}")
 
     destination.parent.mkdir(parents=True, exist_ok=True)
-    document = SimpleDocTemplate(
-        str(destination), pagesize=A4, topMargin=52, bottomMargin=55,
+    body = BytesIO()
+    document = ResearchDocument(
+        body, pagesize=A4, topMargin=52, bottomMargin=55,
         leftMargin=MARGIN, rightMargin=MARGIN,
         title="Segmentasi instance pada lingkungan indoor nyata",
         subject="Laporan eksperimen visi komputer NRP 8",
     )
     document.build(story, onFirstPage=footer, onLaterPages=footer)
+    with PdfWriter() as writer:
+        writer.append(body, outline_item="Isi laporan")
+        writer.append(source.parent / "bukti/visual/atlas-v5.pdf", outline_item="Lampiran A · Test resmi v5")
+        atlas = source.parent / "output/report/atlas-foto-hp.pdf"
+        if not public and atlas.is_file():
+            writer.append(atlas, outline_item="Lampiran B · 40 foto uji HP")
+        writer.add_metadata({
+            "/Title": "Segmentasi instance pada lingkungan indoor nyata",
+            "/Subject": "Laporan eksperimen visi komputer NRP 8",
+        })
+        writer.write(destination)
     print(destination)
 
 
