@@ -110,7 +110,7 @@ def data_table(rows, typography):
     return table
 
 
-def render(source, destination):
+def render(source, destination, public=False):
     typography, story = styles(), []
     lines = source.read_text(encoding="utf-8").splitlines()
     index, section = 0, ""
@@ -126,6 +126,26 @@ def render(source, destination):
             story.append(HRFlowable(width="100%", thickness=.65, color=LINE, spaceBefore=3, spaceAfter=14))
         elif line == "<!-- page-break -->":
             story.append(PageBreak())
+        elif line == "<!-- local-gallery -->":
+            gallery = source.parent / "output/report/visual"
+            sheets = [gallery / f"galeri-{number}.jpg" for number in range(1, 6)]
+            if not public and all(sheet.is_file() for sheet in sheets):
+                for index_sheet, sheet in enumerate(sheets):
+                    if index_sheet % 2 == 0:
+                        story.append(PageBreak())
+                        story.append(Paragraph("Galeri foto uji dari ponsel", typography["head"]))
+                        story.append(Paragraph(
+                            "Foto pada kanvas evaluasi 640 × 640, tanpa overlay. "
+                            "Jumlah mask dan kategori kondisi berasal dari snapshot v3.",
+                            typography["body"],
+                        ))
+                    first = index_sheet * 8 + 1
+                    story.append(KeepTogether([
+                        figure(sheet, max_height=275),
+                        Spacer(1, 5),
+                        Paragraph(f"Foto {first:02d} sampai {first + 7:02d} dari 40.",
+                                  typography["caption"]),
+                    ]))
         elif line.startswith("## "):
             section = line[3:]
             if section == "Bukti audit dan demo":
@@ -134,6 +154,8 @@ def render(source, destination):
         elif line.startswith("### "):
             story.append(Paragraph(markup(line[4:]), typography["subhead"]))
         elif local := LOCAL_FIGURE.fullmatch(line):
+            if public:
+                continue
             path, caption = local.groups()
             attachment = source.parent / path
             if attachment.is_file():
@@ -149,9 +171,19 @@ def render(source, destination):
             match = LINK.search(line)
             if match:
                 caption, path = match.groups()
+                attachment = source.parent / path
+                case = re.fullmatch(r"bukti/visual/(kasus-\d+)-mask.jpg", path)
+                if case and not public:
+                    local_case = source.parent / "output/report/visual" / f"{case[1]}.jpg"
+                    if local_case.is_file():
+                        attachment = local_case
+                height = {
+                    "Studi kasus kegagalan": 145,
+                    "Studi kasus dengan cahaya sulit": 116,
+                    "Contoh visual eksperimen NRP 8": 278,
+                }.get(section, 192)
                 story.append(KeepTogether([
-                    figure(source.parent / path,
-                           max_height=184 if section == "Bukti audit dan demo" else 192),
+                    figure(attachment, max_height=height),
                     Spacer(1, 5),
                     Paragraph(markup(caption), typography["caption"]),
                 ]))
@@ -209,5 +241,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path, default=Path("LAPORAN_RISET.md"), nargs="?")
     parser.add_argument("--output", type=Path, default=Path("output/pdf/laporan-segmentasi-indoor-nrp8.pdf"))
+    parser.add_argument("--public", action="store_true", help="Exclude private phone photographs.")
     options = parser.parse_args()
-    render(options.source, options.output)
+    render(options.source, options.output, options.public)

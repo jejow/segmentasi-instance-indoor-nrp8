@@ -168,19 +168,21 @@ Pada kontrol, 2.254 mask (42,2%) tidak punya kandidat dengan IoU 0,50 dan 952 ma
 
 ## Studi kasus kegagalan
 
-Pada tiap foto, satu instance acuan dibandingkan dengan keluaran tiga model baseline. IoU sekelas memeriksa satu kelas yang sama. IoU lintas kelas memperlihatkan kandidat dengan bentuk terdekat meski labelnya berbeda. Panel menampilkan prediksi sekelas jika ada overlap. Jika overlap sekelas nol, panel memakai kandidat lintas kelas. Piksel dan instance acuan untuk kelima contoh cocok antara snapshot v2 dan v3. [Angka IoU setiap model](bukti/hasil/kasus-iou.csv) · [Prosedur pencocokan](inspect_failures.py)
+Pada tiap foto, satu instance acuan dibandingkan dengan keluaran tiga model baseline dari evaluasi v2. Panel menampilkan prediksi sekelas jika ada irisan. Jika irisan sekelas nol, panel memakai kandidat lintas kelas dengan IoU tertinggi. Piksel dan mask acuan untuk kelima contoh cocok dengan snapshot v3. Setiap panel prediksi menyebut label keluaran dan IoU mask yang ditampilkan. [Angka IoU setiap model](bukti/hasil/kasus-iou.csv) · [Prosedur pencocokan](inspect_failures.py)
+
+Pada panel siluet, hijau toska adalah area acuan saja, jingga adalah area prediksi saja, dan biru tua adalah irisannya. Pada panel foto, toska menandai mask acuan dan jingga menandai prediksi.
 
 ### Kasus 1. Laptop di depan kamera
 
 Pada satu laptop besar, ketiga model memiliki IoU sekelas nol. Kandidat terdekat YOLOv8n berlabel `stairs` pada IoU 0,87. Dua kandidat lain berlabel `wall-other-merged` pada 0,81 dan `box` pada 0,85. Bentuk bidang layar sudah tertangkap. Pada Mask R-CNN, hasil ini menyempitkan diagnosis ke label keluaran karena cabang mask dapat menghasilkan kontur yang menutup layar. Penyebab pemilihan label di dalam head klasifikasi belum diukur.
 
-<!-- figure: output/report/cases/1000865793-372.jpg | Gambar 5. Satu laptop sebagai acuan dan tiga prediksi terdekat. -->
+![Gambar 5. Tiga model mengikuti bidang laptop dengan tiga label yang berbeda dari acuan.](bukti/visual/kasus-1-mask.jpg)
 
 ### Kasus 2. Kursi kayu berhimpitan
 
 Mask R-CNN memberi `chair` pada IoU 0,55. IoU sekelas untuk dua YOLO mendekati nol. Kandidat lintas kelas Mask R-CNN mendapat IoU 0,77 dengan label `stairs`. Bilah kayu yang berulang dan bagian kursi yang saling menutup memberi ciri visual yang ambigu. Proposal per region pada Mask R-CNN menghasilkan satu mask kursi yang melewati IoU 0,50, sementara cabang kelas juga menghasilkan prediksi lain pada wilayah yang sama.
 
-<!-- figure: output/report/cases/1000865800-548.jpg | Gambar 6. Kursi bertumpuk dengan mask acuan dan keluaran ketiga baseline. -->
+![Gambar 6. Ketiga baseline pada satu kursi dari kelompok kursi berhimpitan.](bukti/visual/kasus-2-mask.jpg)
 
 <!-- page-break -->
 
@@ -190,19 +192,19 @@ Mask R-CNN memberi `chair` pada IoU 0,55. IoU sekelas untuk dua YOLO mendekati n
 
 Mask lampu berukuran 2.751 piksel, sekitar 0,67% kanvas. IoU sekelas nol pada ketiga model dan kandidat lintas kelas terbaik hanya 0,07. Prediksi yang bertumpang tindih berasal dari plafon atau tembok. Cabang mask per region Mask R-CNN memerlukan proposal yang cukup baik di lokasi lampu. Uji gamma memeriksa apakah pencerahan memulihkan prediksi lampu pada foto ini.
 
-<!-- figure: output/report/cases/1000865809-183.jpg | Gambar 7. Lampu di plafon dan mask hasil inferensi yang tidak menutupnya. -->
+![Gambar 7. Mask acuan lampu beririsan sedikit dengan tiga prediksi latar.](bukti/visual/kasus-3-mask.jpg)
 
 ### Kasus 4. Dua orang di depan jendela
 
 Mask `person` YOLO11n meluas ke orang kedua dan latar. IoU terhadap orang kiri 0,36. YOLOv8n dan Mask R-CNN mencapai 0,79 dan 0,76. YOLO11n membentuk mask dari peta prototipe bersama dengan koefisien khusus instance. Batas yang menyatu pada contoh ini memperlihatkan kegagalan pemisahan instance. Nilai IoU saja belum mengisolasi resolusi prototipe sebagai penyebab.
 
-<!-- figure: output/report/cases/1000865811-106.jpg | Gambar 8. Dua orang dengan backlight. Acuan hanya orang di kiri. -->
+![Gambar 8. Area yang melebar di sekitar instance orang di kiri.](bukti/visual/kasus-4-mask.jpg)
 
 ### Kasus 5. Kursi di ruang redup
 
 YOLOv8n mengikuti kontur kursi pada IoU 0,89 dengan label `person`. YOLO11n dan Mask R-CNN memberi label `chair` pada IoU 0,90 dan 0,82. Bayangan dapat mengurangi ciri visual sandaran. Pada Mask R-CNN, perubahan cahaya bisa memengaruhi head kelas meski region dan kontur sudah mendekati acuan. Kasus ini ikut diuji memakai checkpoint Mask R-CNN v1.
 
-<!-- figure: output/report/cases/1000865829-200.jpg | Gambar 9. Model berbeda memberi label berbeda pada siluet kursi. -->
+![Gambar 9. Perbandingan mask kursi pada ruang redup. YOLOv8n memberi label person.](bukti/visual/kasus-5-mask.jpg)
 
 <!-- page-break -->
 
@@ -234,11 +236,11 @@ Mask R-CNN memimpin tiga baseline pada kedua domain. Pelatihan hanya tiga kelas 
 |---|---|
 | Riwayat kode dan hipotesis | [Repositori GitHub](https://github.com/jejow/segmentasi-instance-indoor-nrp8) dan [logbook](LOGBOOK.md). |
 | Waktu GPU dan log asli | [Tabel waktu per run](bukti/hasil/waktu-gpu.csv) dan [results.csv per epoch](bukti/log-training). |
-| Hasil eksperimen dan visual | [CSV dan grafik](bukti/hasil) serta [skrip pembuat grafik](build_report_evidence.py). |
-| Foto, EXIF, dan mask | Paket lokal memuat audit v3, EXIF, foto studi kasus, dan overlay. Screenshot editor Roboflow masih perlu dilampirkan. [Audit data](TEST_PRIBADI.md) |
+| Hasil eksperimen dan visual | [CSV dan grafik](bukti/hasil), [panel mask](bukti/visual), dan [skrip pembuat panel](build_visual_report.py). |
+| Foto, EXIF, dan mask | PDF lokal memuat galeri 40 foto v3 dan overlay lima studi kasus. Paket lokal menyertakan audit dan EXIF. Screenshot editor Roboflow masih perlu dilampirkan. [Audit data](TEST_PRIBADI.md) |
 | Penggunaan AI | [Deklarasi, prompt utama, dan contoh koreksi](DEKLARASI_AI.md). |
 
-<!-- figure: output/test-pribadi/perbaikan-mask.jpg | Gambar 11. Overlay foto audit sebelum dan sesudah pemisahan objek di Roboflow. -->
+<!-- figure: output/test-pribadi/perbaikan-mask.jpg | Bukti audit. Overlay sebelum dan sesudah pemisahan objek di Roboflow. -->
 
 Demo memakai foto baru yang diambil saat sesi. Skrip menerima ambang confidence sebagai argumen. Mengubah ambang dari 0,15 ke 0,30 mengurangi atau mempertahankan jumlah mask dari foto yang sama. Skor per kelas bisa ditunjukkan bersama jumlah mask acuannya. [Cara menjalankan demo](README.md#demo-satu-foto) · [Skor per kelas](bukti/hasil/ap-per-kelas.csv)
 
@@ -251,3 +253,19 @@ Torchvision. Mask R-CNN ResNet-50 FPN v2. [Dokumentasi pembuat model dan bobot](
 Ultralytics. Implementasi segmentasi v8.3.230. [Proses mask dan prototipe](https://github.com/ultralytics/ultralytics/blob/v8.3.230/ultralytics/utils/ops.py)
 
 Kassis, T., Agarwal, V., He, Y., Patel, D., dan Brueckner, A. M. 2026. Scientific Agent Skills. Digunakan untuk penelusuran bukti dalam penyuntingan laporan. [arXiv:2609.00065](https://arxiv.org/abs/2609.00065)
+
+<!-- page-break -->
+
+## Contoh visual eksperimen NRP 8
+
+Untuk setiap kelas target, panel mengambil instance non-crowd dengan luas mask acuan terbesar pada test v5. Baris atas memperlihatkan tiga model setelah pelatihan semua kelas. Baris bawah memperlihatkan tiga model setelah pelatihan tiga kelas, dengan mask acuan di kiri. Setiap prediksi yang ditampilkan memiliki IoU sekelas tertinggi terhadap instance tersebut. Skor adalah confidence deteksi. Kanvas tanpa overlay pada panel model berarti tidak ada prediksi sekelas yang beririsan. Ketiga contoh ini mendokumentasikan bentuk dan posisi mask pada instance terpilih. Rata-rata kinerja tetap dihitung dari seluruh test set.
+
+![Gambar 11. Pisau pada test v5. Foto, mask acuan COCO, dan enam keluaran model.](bukti/visual/v5-knife.jpg)
+
+![Gambar 12. Lampu pada test v5. Foto, mask acuan COCO, dan enam keluaran model.](bukti/visual/v5-light.jpg)
+
+![Gambar 13. Sendok pada test v5. Foto, mask acuan COCO, dan enam keluaran model.](bukti/visual/v5-spoon.jpg)
+
+Sumber foto dan anotasi Gambar 11–13 adalah [Panoptic Indoor Segmentation v5, panopticindoor, 2024](https://universe.roboflow.com/panopticindoor/panoptic-indoor-segmentation/dataset/5), berlisensi [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Citra dipetakan ke kanvas 640 × 640, diberi overlay mask, dan disusun menjadi panel. Setiap panel menyimpan ID citra dan instance pada ekspor yang telah diproses.
+
+<!-- local-gallery -->
